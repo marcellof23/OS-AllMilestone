@@ -1,0 +1,4 @@
+system.img
+bootloader
+kernel
+*.o
