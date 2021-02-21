@@ -4,8 +4,9 @@ void readString(char *string);
 void clear(char *buffer, int length); //Fungsi untuk mengisi buffer dengan 0
 
 int main() {
+  char *string = "testing";
   makeInterrupt21();
-  handleInterrupt21(0,1,1,1);
+  handleInterrupt21(0,string,0,0);
   while (1);
 }
 
@@ -23,13 +24,16 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX){
 }
 
 void printString(char *string){
-  interrupt(10,0xff,0xff,0xff);
-  interrupt(10,0xff,0xff,0xff);
-  interrupt(10,0xff,0xff,0xff);
-  interrupt(10,0xff,0xff,0xff);
-  interrupt(10,0xff,0xff,0xff);
-  interrupt(10,0xff,0xff,0xff);
-  interrupt(10,0xff,0xff,0xff);
+  int i =0;
+  while(*(string+i)!= '\0')
+  {
+    if(*(string+i) == '\r')
+      interrupt(0x10,0xE00 + '\n',0,0,0);
+    else if(*(string+i)== '\n')
+      interrupt(0x10,0xE00 + '\r',0,0,0);
+    interrupt(0x10,0xE00 + *(string+i),0,0,0);
+    ++i;
+  }
 }
 
 void readString(char *string){
