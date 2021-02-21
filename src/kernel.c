@@ -14,7 +14,8 @@ int main() {
   char *string = "OMAEWA";
   char *woi  = "WOIIIs";
   makeInterrupt21();
-  handleInterrupt21(2,3,0,0);
+  handleInterrupt21(2,0x0013,0,0);
+  printLogo();
   handleInterrupt21(0,string,0,0);
   handleInterrupt21(0,woi,0,0);
 
@@ -83,5 +84,5 @@ void cls(int displaymode){
 }
 
 void printLogo(){
-  
+  interrupt(10,0xc0d,0,0,0);
 }
