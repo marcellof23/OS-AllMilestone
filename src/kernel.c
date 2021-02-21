@@ -4,9 +4,10 @@ void readString(char *string);
 void clear(char *buffer, int length); //Fungsi untuk mengisi buffer dengan 0
 
 int main() {
-  char *string = "meki";
+  char *string = "OMAEWA\n";
   makeInterrupt21();
-  handleInterrupt21(1,string,0,0);
+  handleInterrupt21(0,string,0,0);
+  handleInterrupt21(2,"ADA",0,0);
   while (1);
 }
 
@@ -35,9 +36,9 @@ void printString(char *string){
   
   // Menggunakan int 10h AH = 0eh
 
-  int i = 0;
-  while(*(string+i) != '\0') {
-    interrupt(0x10,0x0e00 + *(string+i),0, 0, 0);
+  int i=0;
+  while(*(string+i)!='\0'){
+    interrupt(0x10,0xe00 + *(string+i),0,0,0);
     i++;
   }
 }
@@ -61,5 +62,5 @@ void readString(char *string){
 }
 
 void clear(char *buffer, int length){
-
+  interrupt(0x06,00,00,00,00);
 }

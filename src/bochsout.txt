@@ -34,6 +34,7 @@
 00000000000i[      ]   Sound support: SB16 ES1370
 00000000000i[      ]   USB support: UHCI OHCI EHCI xHCI
 00000000000i[      ]   VGA extension support: vbe cirrus voodoo
+<<<<<<< HEAD
 00000000000i[MEM0  ] allocated memory at 0x7fdb77857010. after alignment, vector=0x7fdb77858000
 00000000000i[MEM0  ] 32,00MB
 00000000000i[MEM0  ] mem block size = 0x00020000, blocks=256
@@ -73,6 +74,47 @@
 00000000000i[      ] lt_dlhandle is 0x557a30c306e0
 00000000000i[PLUGIN] loaded plugin libbx_harddrv.so
 00000000000i[      ] lt_dlhandle is 0x557a30c32940
+=======
+00000000000i[MEM0  ] allocated memory at 0x7fb6852cf010. after alignment, vector=0x7fb6852d0000
+00000000000i[MEM0  ] 32,00MB
+00000000000i[MEM0  ] mem block size = 0x00020000, blocks=256
+00000000000i[MEM0  ] rom at 0xfffe0000/131072 ('/usr/share/bochs/BIOS-bochs-latest')
+00000000000i[      ] lt_dlhandle is 0x559d5bd950e0
+00000000000i[PLUGIN] loaded plugin libbx_hdimage.so
+00000000000i[      ] lt_dlhandle is 0x559d5c3d5e40
+00000000000i[PLUGIN] loaded plugin libbx_soundalsa.so
+00000000000i[WAVOUT] ALSA: opened default PCM output device
+00000000000i[WAVOUT] changed sample rate to 44101
+00000000000i[      ] lt_dlhandle is 0x559d5c3f0410
+00000000000i[PLUGIN] loaded plugin libbx_pci.so
+00000000000i[      ] lt_dlhandle is 0x559d5c3d69f0
+00000000000i[PLUGIN] loaded plugin libbx_pci2isa.so
+00000000000i[      ] lt_dlhandle is 0x559d5c3fdfd0
+00000000000i[PLUGIN] loaded plugin libbx_usb_uhci.so
+00000000000i[      ] lt_dlhandle is 0x559d5c400690
+00000000000i[PLUGIN] loaded plugin libbx_acpi.so
+00000000000i[      ] lt_dlhandle is 0x559d5c400ec0
+00000000000i[PLUGIN] loaded plugin libbx_hpet.so
+00000000000i[      ] lt_dlhandle is 0x559d5c401d30
+00000000000i[PLUGIN] loaded plugin libbx_cmos.so
+00000000000i[      ] lt_dlhandle is 0x559d5c402690
+00000000000i[PLUGIN] loaded plugin libbx_dma.so
+00000000000i[      ] lt_dlhandle is 0x559d5c4030e0
+00000000000i[PLUGIN] loaded plugin libbx_pic.so
+00000000000i[      ] lt_dlhandle is 0x559d5c403940
+00000000000i[PLUGIN] loaded plugin libbx_pit.so
+00000000000i[      ] lt_dlhandle is 0x559d5c404340
+00000000000i[PLUGIN] loaded plugin libbx_vga.so
+00000000000i[      ] lt_dlhandle is 0x559d5c404ba0
+00000000000i[PLUGIN] loaded plugin libbx_floppy.so
+00000000000i[      ] lt_dlhandle is 0x559d5c405750
+00000000000i[PLUGIN] loaded plugin libbx_ioapic.so
+00000000000i[      ] lt_dlhandle is 0x559d5c405f50
+00000000000i[PLUGIN] loaded plugin libbx_keyboard.so
+00000000000i[      ] lt_dlhandle is 0x559d5c406720
+00000000000i[PLUGIN] loaded plugin libbx_harddrv.so
+00000000000i[      ] lt_dlhandle is 0x559d5c408980
+>>>>>>> 1cc2f0e4a3ca70664c4f637d1213a07374cddf5e
 00000000000i[PLUGIN] loaded plugin libbx_pci_ide.so
 00000000000i[PLUGIN] init_dev of 'pci' plugin device by virtual method
 00000000000i[DEV   ] i440FX PMC present at device 0, function 0
@@ -80,7 +122,11 @@
 00000000000i[DEV   ] PIIX3 PCI-to-ISA bridge present at device 1, function 0
 00000000000i[PLUGIN] init_dev of 'cmos' plugin device by virtual method
 00000000000i[CMOS  ] Using local time for initial clock
+<<<<<<< HEAD
 00000000000i[CMOS  ] Setting initial clock to: Sun Feb 21 15:33:04 2021 (time0=1613892784)
+=======
+00000000000i[CMOS  ] Setting initial clock to: Sun Feb 21 00:19:55 2021 (time0=1613841595)
+>>>>>>> 1cc2f0e4a3ca70664c4f637d1213a07374cddf5e
 00000000000i[PLUGIN] init_dev of 'dma' plugin device by virtual method
 00000000000i[DMA   ] channel 4 used by cascade
 00000000000i[PLUGIN] init_dev of 'pic' plugin device by virtual method
@@ -265,6 +311,7 @@
 00002009681i[BXVGA ] VBE known Display Interface b0c0
 00002009713i[BXVGA ] VBE known Display Interface b0c5
 00002012356i[VBIOS ] VBE Bios $Id: vbe.c 228 2020-01-02 23:09:02Z vruppert $
+<<<<<<< HEAD
 00002192880i[XGUI  ] charmap update. Font is 9 x 16
 00032863656i[BIOS  ] Booting from 0000:7c00
 00372170000p[XGUI  ] >>PANIC<< POWER button turned off.
@@ -288,3 +335,16 @@
 00372170000i[CMOS  ] Last time is 1613892821 (Sun Feb 21 15:33:41 2021)
 00372170000i[XGUI  ] Exit
 00372170000i[SIM   ] quit_sim called with exit code 1
+=======
+00002640610i[XGUI  ] charmap update. Font is 9 x 16
+00032863656i[BIOS  ] Booting from 0000:7c00
+00032975499i[FLOPPY] partial read() on floppy image returns 24/512
+00033086609i[FLOPPY] read() on floppy image returns 0
+00033197719i[FLOPPY] read() on floppy image returns 0
+00033308829i[FLOPPY] read() on floppy image returns 0
+00033419939i[FLOPPY] read() on floppy image returns 0
+00033531049i[FLOPPY] read() on floppy image returns 0
+00033642159i[FLOPPY] read() on floppy image returns 0
+00033753269i[FLOPPY] read() on floppy image returns 0
+00033864379i[FLOPPY] read() on floppy image returns 0
+>>>>>>> 1cc2f0e4a3ca70664c4f637d1213a07374cddf5e
