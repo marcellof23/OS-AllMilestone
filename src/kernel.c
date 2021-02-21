@@ -12,10 +12,9 @@ void cls(int displaymode);
 
 int main() {
   char *string = "OMAEWA";
-  char *woi  = "WOIIIs";
+  char *woi  = "WOIIIsss";
   makeInterrupt21();
-  handleInterrupt21(2,0x0013,0,0);
-  printLogo();
+  handleInterrupt21(3,0,0,0);
   handleInterrupt21(0,string,0,0);
   handleInterrupt21(0,woi,0,0);
 
@@ -36,6 +35,9 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX){
       break;
     case 0x2:
       cls(BX);
+      break;
+    case 0x3:
+      printLogo();
       break;
     default:
       printString("Invalid interrupt");
@@ -84,5 +86,10 @@ void cls(int displaymode){
 }
 
 void printLogo(){
-  interrupt(10,0xc0d,0,0,0);
+ printString("                        _       ");
+ printString(" _ __   ___  ___  _ __ | | ___  ");
+ printString("| '_   / _   _  '_  |/ _ ");
+ printString("| |_) |  __/ (_) | |_) | |  __/ ");
+ printString("| .__/ ___|__/| .__/|_|___| ");
+ printString("|_|              |_|            ");
 }
