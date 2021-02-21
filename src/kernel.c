@@ -12,13 +12,6 @@ void cls(int displaymode);
 
 int main() {
   char *string = "OMAEWA";
-<<<<<<< HEAD
-  char *woi  = "WOIIIsss";
-  makeInterrupt21();
-  handleInterrupt21(3,0,0,0);
-  handleInterrupt21(0,string,0,0);
-  handleInterrupt21(0,woi,0,0);
-=======
   char *woi  = "WOIIIs";
   cls(0x13);
   // makeInterrupt21();
@@ -26,7 +19,6 @@ int main() {
   printLogo(50, 50);
   // handleInterrupt21(0,string,0,0);
   // handleInterrupt21(0,woi,0,0);
->>>>>>> 05b77f165a46128d2ea9a3011b56429b0a401120
 
   // handleInterrupt21(2,"ADA",0,0);
   // handleInterrupt21(1,0,0,0);
@@ -45,9 +37,6 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX){
       break;
     case 0x2:
       cls(BX);
-      break;
-    case 0x3:
-      printLogo();
       break;
     default:
       printString("Invalid interrupt");
@@ -95,15 +84,6 @@ void cls(int displaymode){
   interrupt(0x10,displaymode,0,0);
 }
 
-<<<<<<< HEAD
-void printLogo(){
- printString("                        _       ");
- printString(" _ __   ___  ___  _ __ | | ___  ");
- printString("| '_   / _   _  '_  |/ _ ");
- printString("| |_) |  __/ (_) | |_) | |  __/ ");
- printString("| .__/ ___|__/| .__/|_|___| ");
- printString("|_|              |_|            ");
-=======
 void printLogo(int x, int y){
   int i, j;
   for(i = 0; i < x; i++) {
@@ -111,5 +91,4 @@ void printLogo(int x, int y){
       interrupt(0x10, 0x0c0d,0,i,j);
     }
   }
->>>>>>> 05b77f165a46128d2ea9a3011b56429b0a401120
 }
