@@ -4,18 +4,16 @@ void readString(char *string);
 void clear(char *buffer, int length); //Fungsi untuk mengisi buffer dengan 0
 
 int main() {
-<<<<<<< HEAD
-  char *string = "testing";
-  makeInterrupt21();
-  handleInterrupt21(0,string,0,0);
-=======
   char *string = "OMAEWA";
+  char *woi  = "WOIIIs";
   makeInterrupt21();
+  handleInterrupt21(2,string,6,0);
   handleInterrupt21(0,string,0,0);
-  handleInterrupt21(2,"ADA",0,0);
-  handleInterrupt21(1,0,0,0);
-  handleInterrupt21(1,0,0,0);
->>>>>>> 537d900e4344329f052ebc8dfd310000d37b5691
+  handleInterrupt21(0,woi,0,0);
+  // handleInterrupt21(2,"ADA",0,0);
+  // handleInterrupt21(1,0,0,0);
+  // handleInterrupt21(1,0,0,0);
+  
   while (1);
 }
 
@@ -26,6 +24,9 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX){
       break;
     case 0x1:
       readString(BX);
+      break;
+    case 0x2:
+      clear(BX,CX);
       break;
     default:
       printString("Invalid interrupt");
@@ -64,5 +65,8 @@ void readString(char *string){
 }
 
 void clear(char *buffer, int length){
-  interrupt(0x06,00,00,00,00);
+  int i;
+  for(i=0;i<length;i++){
+    buffer[i] = 0x00;
+  }
 }
