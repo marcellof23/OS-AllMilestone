@@ -1,9 +1,10 @@
 extern imageFile;
+extern imageFile2;
 int VIDEO_OFFSET=0x8000;
 int VIDEO_SEGMENT=0xB000;
 int VIDEO_SCREEN_SIZE = 4000;
 char *image = &imageFile;
-
+char *image2 = &imageFile;
 void handleInterrupt21 (int AX, int BX, int CX, int DX);
 void printString(char *string);
 void readString(char *string);
@@ -15,7 +16,7 @@ int main() {
   char *string = "OMAEWA";
   char *woi  = "WOIIIs";
   cls(0x13);
-  // makeInterrupt21();
+  makeInterrupt21();
   // handleInterrupt21(2,0x0013,0,0);
   printLogo(image[0], image[1]);
   // handleInterrupt21(0,string,0,0);
@@ -24,7 +25,6 @@ int main() {
   // handleInterrupt21(2,"ADA",0,0);
   // handleInterrupt21(1,0,0,0);
   // handleInterrupt21(1,0,0,0);
-  
   while (1);
 }
 
@@ -45,11 +45,11 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX){
 }
 
 void printString(char *string){
-  int i =0;
+  int i = 0;
   while(*(string+i)!= '\0')
   {
     interrupt(0x10,0xE00 + *(string+i),0,0,0);
-    ++i;
+    i++;
   }
   interrupt(0x10,0xE00 + '\n',0,0,0);
   interrupt(0x10,0xE00 + '\r',0,0,0);

@@ -79,4 +79,4 @@ _interrupt21ServiceRoutine:
 	pop dx
 
 	iret
-_imageFile: incbin "paimon.bin"
+_imageFile : incbin "paimon.bin"
