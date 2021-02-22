@@ -1,7 +1,8 @@
+extern imageFile;
 int VIDEO_OFFSET=0x8000;
 int VIDEO_SEGMENT=0xB000;
 int VIDEO_SCREEN_SIZE = 4000;
-
+char *image = &imageFile;
 
 void handleInterrupt21 (int AX, int BX, int CX, int DX);
 void printString(char *string);
@@ -16,7 +17,7 @@ int main() {
   cls(0x13);
   // makeInterrupt21();
   // handleInterrupt21(2,0x0013,0,0);
-  printLogo(50, 50);
+  printLogo(image[0], image[1]);
   // handleInterrupt21(0,string,0,0);
   // handleInterrupt21(0,woi,0,0);
 
@@ -81,14 +82,16 @@ void clear(char *buffer, int length){
 }
 
 void cls(int displaymode){
-  interrupt(0x10,displaymode,0,0);
+  interrupt(0x10,displaymode,0,0,0);
 }
 
 void printLogo(int x, int y){
-  int i, j;
-  for(i = 0; i < x; i++) {
-    for(j = 0; j < y; j++) {
-      interrupt(0x10, 0x0c0d,0,i,j);
+  int i, j, idx;
+  idx = 2;
+  for(i = x; i > 0; i--) {
+    for(j = y; j > 0; j--) {
+      interrupt(0x10, 0x0c00 + (image[idx]), 0, i, j);
+      idx++;
     }
   }
 }
