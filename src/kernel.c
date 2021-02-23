@@ -10,23 +10,19 @@ void printString(char *string);
 void readString(char *string);
 void clear(char *buffer, int length); //Fungsi untuk mengisi buffer dengan 0
 void printLogo(int x, int y);
+void printOSName();
 void cls(int displaymode);
 
-int main() {
-  char *string = "OMAEWA";
-  char *woi  = "WOIIIs";
-  cls(0x13);
+int main () {
   makeInterrupt21();
-  // handleInterrupt21(2,0x0013,0,0);
-  printLogo(image[0], image[1]);
-  // handleInterrupt21(0,string,0,0);
-  // handleInterrupt21(0,woi,0,0);
-
-  // handleInterrupt21(2,"ADA",0,0);
-  // handleInterrupt21(1,0,0,0);
-  // handleInterrupt21(1,0,0,0);
+  cls(0x13);
+  printLogo(image[0],image[1]);
+  handleInterrupt21(0x1,0,0,0);
+  cls(3);
+  printOSName();
   while (1);
 }
+
 
 void handleInterrupt21 (int AX, int BX, int CX, int DX){
   switch (AX) {
@@ -45,14 +41,24 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX){
 }
 
 void printString(char *string){
-  int i = 0;
-  while(*(string+i)!= '\0')
-  {
-    interrupt(0x10,0xE00 + *(string+i),0,0,0);
+  // Menggunakan int 10h AH = 02h dan 09h
+  
+  // int i = 0;
+  // while(*(string+i) != '\0') {
+  //   interrupt(0x10, 0x0200, 0, 0, i);
+  //   interrupt(0x10, 0x0900 + *(string+i), 0x02, 1, 0);
+  //   i++;
+  // }
+  
+  // Menggunakan int 10h AH = 0eh
+
+  int i=0;
+  while(*(string+i)!='\0'){
+    interrupt(0x10,0xe00 + *(string+i),0,0,0);
     i++;
   }
-  interrupt(0x10,0xE00 + '\n',0,0,0);
-  interrupt(0x10,0xE00 + '\r',0,0,0);
+  interrupt(0x10,0xe00 + '\n',0,0,0);
+  interrupt(0x10,0xe00 + '\r',0,0,0);
 }
 
 void readString(char *string){
@@ -94,4 +100,29 @@ void printLogo(int x, int y){
       idx++;
     }
   }
+}
+
+void printOSName(){
+  printString(" /$$$$$$$ /$$  ");
+  printString("| $$__  $|__/ ");
+  printString("| $$  \\ $$/$$ /$$$$$$ ");
+  printString("| $$$$$$$| $$/$$__  $$   ");
+  printString("| $$____/| $| $$$$$$$$ ");
+  printString("| $$     | $| $$_____/ ");
+  printString("| $$     | $|  $$$$$$$ ");
+  printString("|/$$     |/$$\\_______/   ");
+  printString("| $$$    /$$$    ");
+  printString("| $$$$  /$$$$ /$$$$$$  /$$$$$$ /$$$$$$$");
+  printString("| $$ $$/$$ $$/$$__  $$/$$__  $| $$__  $$");
+  printString("| $$  $$$| $| $$  \\ $| $$  \\ $| $$  \\ $$");
+  printString("| $$\\  $ | $| $$  | $| $$  | $| $$  | $$");
+  printString("| $$ \\/  | $|  $$$$$$|  $$$$$$| $$  | $$");
+  printString("|_/$$$$$$|_/$$$$$$__/ \\______/|__/  |__/");
+  printString(" /$$__  $$/$$__  $$ ");
+  printString("| $$  \\ $| $$  \\__/ ");
+  printString("| $$  | $|  $$$$$$    ");
+  printString("| $$  | $$\\____  $$  ");
+  printString("| $$  | $$/$$  \\ $$  ");
+  printString("|  $$$$$$|  $$$$$$/  ");
+  printString(" \\______/ \\______/  ");
 }
