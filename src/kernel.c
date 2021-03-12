@@ -143,14 +143,14 @@ void readFile(char *buffer, char *path, int *sectors, char parentIndex)
 {
 
 }
-void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
-{
-  char map[512];
-  char files[512];
-  char sectorsFile[1024];
+// void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
+// {
+//   char map[512];
+//   char files[512];
+//   char sectorsFile[1024];
 
-  readSector(map,256);
-  readSector(files,0x101);
-  readSector(files+0x200,0x102);
-  readSector(sectorsFile,0x103);
-}
+//   readSector(map,256);
+//   readSector(files,0x101);
+//   readSector(files+0x200,0x102);
+//   readSector(sectorsFile,0x103);
+// }
