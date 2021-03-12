@@ -1,5 +1,5 @@
 bochsout.txt
-system.img
+*.img
 bootloader
 kernel
 *.o
