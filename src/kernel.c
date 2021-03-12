@@ -1,3 +1,5 @@
+#include "utilities.h"
+
 extern imageFile;
 int VIDEO_OFFSET=0x8000;
 int VIDEO_SEGMENT=0xB000;
