@@ -11,6 +11,11 @@ void clear(char *buffer, int length); //Fungsi untuk mengisi buffer dengan 0
 void printLogo(int x, int y);
 void printOSName();
 void cls(int displaymode);
+void readSector(char *buffer,int sector);
+void writeSector(char *buffer,int sector);
+void readFile(char *buffer, char *path, int *sectors, char parentIndex);
+void writeFile(char *buffer, char *path, int *sectors, char parentIndex);
+
 
 int main () {
   makeInterrupt21();
@@ -124,4 +129,26 @@ void printOSName(){
   printString("| $$  | $$/$$  \\ $$  ");
   printString("|  $$$$$$|  $$$$$$/  ");
   printString(" \\______/ \\______/  ");
+}
+
+void readSector(char *buffer,int sector) {
+  interrupt(0x13, 0x201, buffer, div(sector,36)*0x100 + mod(sector,18) + 1, mod(div(sector,18),2)*0x100);
+}
+void writeSector(char *buffer,int sector) {
+  interrupt(0x13, 0x301, buffer, div(sector,36)*0x100 + mod(sector,18) + 1, mod(div(sector,18),2)*0x100);
+}
+void readFile(char *buffer, char *path, int *sectors, char parentIndex)
+{
+
+}
+void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
+{
+  char map[512];
+  char files[512];
+  char sectorsFile[1024];
+
+  readSector(map,256);
+  readSector(files,0x101);
+  readSector(files+0x200,0x102);
+  readSector(sectorsFile,0x103);
 }
