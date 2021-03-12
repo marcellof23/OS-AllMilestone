@@ -1,11 +1,4 @@
-int mod(int x,int y)
-{
-    while(x>=y)
-    {
-        x-=y;
-    }
-    return x;
-}
+#include "utilities.h"
 
 int div(int x,int y)
 {
@@ -17,5 +10,9 @@ int div(int x,int y)
         res++;
     }
     return res;
+}
 
+int mod(int x,int y) //Returns x mod y
+{
+    return x - y*div(x,y);
 }
