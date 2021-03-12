@@ -1,3 +1,4 @@
+#include <stdio.h>
 int mod(int x,int y)
 {
     while(x>=y)
@@ -18,4 +19,9 @@ int div(int x,int y)
     }
     return res;
 
+}
+
+int main() {
+    printf("%d", mod(12,5));
+    return 0;
 }
