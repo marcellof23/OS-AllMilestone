@@ -144,7 +144,7 @@ void writeSector(char *buffer,int sector) {
 }
 
 void readFile(char *buffer, char *path, int *result, char parentIndex)
-
+{
   char files[1024];
   char sectorsFile[512];
   char fileName[14];
@@ -156,13 +156,13 @@ void readFile(char *buffer, char *path, int *result, char parentIndex)
   readSector(files+0x200,0x102);
   readSector(sectorsFile,0x103);
 
-  while(i<1024 && !fileFound){
+  while(i<1024 && !found){
     strslice(files,fileName,i+2,i+16);
     if(files[i] == parentIndex && files[i+1] != 0xFF && strcmp(fileName,path,14)){
       found = 1;
       for(j=0;j<16;j++){
         if(sectorsFile[files[i+1]*16+j] != 0x0){
-          readSector(buffer[j*512], sectorsFile[files[i+1]*16+j])
+          readSector(buffer[j*512], sectorsFile[files[i+1]*16+j]);
         } else{
           filzero(buffer[j*512], 512);
         }
@@ -194,7 +194,7 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
   for(i=0;i<64;i++)
   {
     // filenya udah ada
-    if((files[0x10*i] == parentIndex) && stringCompare(path,files + (0x10*i) + 2,14))
+    if((files[0x10*i] == parentIndex) && strcmp(path,files + (0x10*i) + 2,14))
     {
       *sectorsFile = -1;
       return;

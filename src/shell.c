@@ -1,10 +1,10 @@
-void printPath(char path);
+#include "shell.h"
 
-void printPath(char path) {
+void cwd(char pathIdx) {
     int depth = 0;
     char pathOrder[64];
     char *absolutePath;
-    char currDir = path;
+    char currDir = pathIdx;
     char file[512 * 2];
     int i, idx;
     if(currDir != 0xFF) {
