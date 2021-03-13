@@ -41,6 +41,9 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX){
     case 0x2:
       cls(BX);
       break;
+    case 0x3:
+      readSector(BX, CX);
+      break;
     default:
       printString("Invalid interrupt");
   }
