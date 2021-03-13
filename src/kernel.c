@@ -153,4 +153,9 @@ void writeSector(char *buffer,int sector) {
 //   readSector(files,0x101);
 //   readSector(files+0x200,0x102);
 //   readSector(sectorsFile,0x103);
+
+//   writeSector(map,0x100);
+//   writeSector(files,0x101);
+//   writeSector(files+0x200,0x102);
+//   writeSector(sectorsFile,0x103);
 // }
