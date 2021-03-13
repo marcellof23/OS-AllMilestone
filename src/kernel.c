@@ -140,23 +140,6 @@ void writeSector(char *buffer,int sector) {
   interrupt(0x13, 0x301, buffer, div(sector,36)*0x100 + mod(sector,18) + 1, mod(div(sector,18),2)*0x100);
 }
 
-void stringCompare(char *string1,char *string2,int panjang)
-{
-  int i = 0;
-  while(i<panjang)
-  {
-    if(string1[i] == 0)
-    {
-      return 1;
-    }
-    if(string1[i] != string2[i])
-    {
-      return 0;
-    }
-    i++;
-  }
-  return 1;
-}
 // void readFile(char *buffer, char *path, int *sectors, char parentIndex)
 // {
 
