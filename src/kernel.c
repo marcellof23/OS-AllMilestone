@@ -139,23 +139,132 @@ void readSector(char *buffer,int sector) {
 void writeSector(char *buffer,int sector) {
   interrupt(0x13, 0x301, buffer, div(sector,36)*0x100 + mod(sector,18) + 1, mod(div(sector,18),2)*0x100);
 }
+
+void cekString(char *string1,char *string2,int panjang)
+{
+  int i = 0;
+  for(i;i<panjang;i++)
+  {
+    if(string1[i] == 0)
+    {
+      return 1;
+    }
+    if(string1[i] != string2[i])
+    {
+      return 0;
+    }
+  }
+  return 1;
+}
 // void readFile(char *buffer, char *path, int *sectors, char parentIndex)
 // {
 
 // }
-// void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
-// {
-//   char map[512];
-//   char files[512];
-//   char sectorsFile[1024];
+void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
+{
+  char map[512];
+  char files[512];
+  char sectorsFile[1024];
 
-//   readSector(map,0x100);
-//   readSector(files,0x101);
-//   readSector(files+0x200,0x102);
-//   readSector(sectorsFile,0x103);
+  readSector(map,256);
+  readSector(files,257);
+  readSector(files+0x200,258);
+  readSector(sectorsFile,259);
+  
+  int i;
+  for(i=0;i<64;i++)
+  {
+    // filenya udah ada
+    if((files[0x10*i] == parentIndex) && cekString(path,files + (0x10*i) + 2,14))
+    {
+      *sectorsFile = -1;
+      return;
+    }
+  }
+  int emptyIndex = 0;
+  while(emptyIndex < 64)
+  {
+    if(files[emptyIndex * 0x10 + 2] == '\0')
+      break;
+    emptyIndex++;
+  }
+  // entrinya tidak cukup
+  if(emptyIndex == 64)
+  {
+    *sectorsFile = -2;
+    return;
+  }
+  // cek sektor penuh/ngga
+  int totalSector;
+  for(i = 0; i < 0x100 ;i++)
+  {
+    if(buffer[i] == 0)
+    {
+      totalSector++;
+    }
+  }
+  if(totalSector<*sectors)
+  {
+    *sectorsFile = -3
+    return;
+  }
+  //cek sektor penuh 
+  for(j = 0; j < 0x20 ;j++)
+  {
+    if(sectorsFile[j * 0x10] == '\0')
+    {
+      break;
+    }
+  }
+  if(j == 0x20)
+  {
+    *sectorsFile = -3;
+     return;
+  }
 
-//   writeSector(map,0x100);
-//   writeSector(files,0x101);
-//   writeSector(files+0x200,0x102);
-//   writeSector(sectorsFile,0x103);
-// }
+  if(files[parentIndex * 0x10 + 1] != 0xFF)
+  {
+    // parentIndex bukan root
+    if(parentIndex != 0xFF)
+    {
+      *sectorsFile = -4
+      return;
+    }
+  }
+  
+  clear(files + (emptyIndex*0x10), 16);
+  files[emptyIndex * 0x10] = parentIndex;
+  files[emptyIndex * 0x10 + 1] = j;
+  for(i=0;i<14;i++)
+  {
+    if(path[i] != 0x00)
+    {
+      files[i*0x10 + 2 + i] = path[i];
+    }
+    else
+    {
+      break;
+    }
+  }
+  i = 0;
+  while(i<*sectors)
+  {
+    int sektorkosong,tulis_sektor;
+    for(sektorkosong = 0;sektorkosong < 0x100;sektorkosong++)
+    {
+      if(buffer[sektorkosong] == 0x00)
+      {
+        break;
+      }
+    }
+    tulis_sektor = sektorkosong;
+    map[sektorkosong] = 0xFF;
+    sectorsFile[j * 0x10 + sektorkosong] = tulis_sektor;
+    writeSector(buffer + (i * 512), tulis_sektor); 
+    i++;
+  }
+  writeSector(map,256);
+  writeSector(files,257);
+  writeSector(files+0x200,258);
+  writeSector(sectorsFile,259);
+}
