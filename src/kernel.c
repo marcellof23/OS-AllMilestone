@@ -140,7 +140,7 @@ void writeSector(char *buffer,int sector) {
   interrupt(0x13, 0x301, buffer, div(sector,36)*0x100 + mod(sector,18) + 1, mod(div(sector,18),2)*0x100);
 }
 
-void cekString(char *string1,char *string2,int panjang)
+int cekString(char *string1,char *string2,int panjang)
 {
   int i = 0;
   for(i;i<panjang;i++)
@@ -165,13 +165,14 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
   char map[512];
   char files[512];
   char sectorsFile[1024];
+  int emptyIndex = 0;
+  int i, j;
 
   readSector(map,256);
   readSector(files,257);
   readSector(files+0x200,258);
   readSector(sectorsFile,259);
   
-  int i;
   for(i=0;i<64;i++)
   {
     // filenya udah ada
@@ -181,7 +182,6 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
       return;
     }
   }
-  int emptyIndex = 0;
   while(emptyIndex < 64)
   {
     if(files[emptyIndex * 0x10 + 2] == '\0')
@@ -205,7 +205,7 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
   }
   if(totalSector<*sectors)
   {
-    *sectorsFile = -3
+    *sectorsFile = -3;
     return;
   }
   //cek sektor penuh 
@@ -227,7 +227,7 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
     // parentIndex bukan root
     if(parentIndex != 0xFF)
     {
-      *sectorsFile = -4
+      *sectorsFile = -4;
       return;
     }
   }
