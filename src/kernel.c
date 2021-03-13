@@ -41,6 +41,9 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX){
     case 0x2:
       cls(BX);
       break;
+    case 0x3:
+      readSector(BX, CX);
+      break;
     default:
       printString("Invalid interrupt");
   }
@@ -140,27 +143,40 @@ void writeSector(char *buffer,int sector) {
   interrupt(0x13, 0x301, buffer, div(sector,36)*0x100 + mod(sector,18) + 1, mod(div(sector,18),2)*0x100);
 }
 
-int stringCompare(char *string1,char *string2,int panjang)
-{
-  int i = 0;
-  while(i<panjang)
-  {
-    if(string1[i] == 0)
-    {
-      return 1;
-    }
-    if(string1[i] != string2[i])
-    {
-      return 0;
-    }
-    i++;
-  }
-  return 1;
-}
-// void readFile(char *buffer, char *path, int *sectors, char parentIndex)
-// {
+void readFile(char *buffer, char *path, int *result, char parentIndex)
 
-// }
+  char files[1024];
+  char sectorsFile[512];
+  char fileName[14];
+  int i=0;
+  int j;
+  int found=0;
+
+  readSector(files,0x101);
+  readSector(files+0x200,0x102);
+  readSector(sectorsFile,0x103);
+
+  while(i<1024 && !fileFound){
+    strslice(files,fileName,i+2,i+16);
+    if(files[i] == parentIndex && files[i+1] != 0xFF && strcmp(fileName,path,14)){
+      found = 1;
+      for(j=0;j<16;j++){
+        if(sectorsFile[files[i+1]*16+j] != 0x0){
+          readSector(buffer[j*512], sectorsFile[files[i+1]*16+j])
+        } else{
+          filzero(buffer[j*512], 512);
+        }
+      }
+    }
+    i+=16;
+  }
+
+  if(!found){
+    result = -1; 
+  } else{
+    result = 1;
+  }
+}
 void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
 {
   char map[512];
@@ -170,10 +186,10 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
   int totalSector;
   int i, j;
 
-  readSector(map,256);
-  readSector(files,257);
-  readSector(files+0x200,258);
-  readSector(sectorsFile,259);
+  readSector(map,0x100);
+  readSector(files,0x101);
+  readSector(files+0x200,0x102);
+  readSector(sectorsFile,0x103);
   
   for(i=0;i<64;i++)
   {
