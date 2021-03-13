@@ -164,8 +164,8 @@ int stringCompare(char *string1,char *string2,int panjang)
 void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
 {
   char map[512];
-  char files[512];
-  char sectorsFile[1024];
+  char files[1024];
+  char sectorsFile[512];
   int emptyIndex = 0;
   int totalSector;
   int i, j;
