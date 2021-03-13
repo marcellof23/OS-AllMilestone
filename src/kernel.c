@@ -221,7 +221,7 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
     *sectorsFile = -3;
      return;
   }
-
+  // cek indeks entri = 0xFF 
   if(files[parentIndex * 0x10 + 1] != 0xFF)
   {
     // parentIndex bukan root
