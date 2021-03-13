@@ -141,7 +141,7 @@ void writeSector(char *buffer,int sector) {
 }
 
 void readFile(char *buffer, char *path, int *result, char parentIndex)
-{
+
   char files[1024];
   char sectorsFile[512];
   char fileName[14];
