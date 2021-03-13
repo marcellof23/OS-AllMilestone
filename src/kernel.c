@@ -140,10 +140,10 @@ void writeSector(char *buffer,int sector) {
   interrupt(0x13, 0x301, buffer, div(sector,36)*0x100 + mod(sector,18) + 1, mod(div(sector,18),2)*0x100);
 }
 
-void cekString(char *string1,char *string2,int panjang)
+void stringCompare(char *string1,char *string2,int panjang)
 {
   int i = 0;
-  for(i;i<panjang;i++)
+  while(i<panjang)
   {
     if(string1[i] == 0)
     {
@@ -153,6 +153,7 @@ void cekString(char *string1,char *string2,int panjang)
     {
       return 0;
     }
+    i++;
   }
   return 1;
 }
@@ -175,7 +176,7 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
   for(i=0;i<64;i++)
   {
     // filenya udah ada
-    if((files[0x10*i] == parentIndex) && cekString(path,files + (0x10*i) + 2,14))
+    if((files[0x10*i] == parentIndex) && stringCompare(path,files + (0x10*i) + 2,14))
     {
       *sectorsFile = -1;
       return;
