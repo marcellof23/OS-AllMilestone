@@ -3,4 +3,8 @@
 
 void cwd(char pathIdx);
 
+void cd(char *command);
+
+int getPathIdx(char pathIdx);
+
 #endif
