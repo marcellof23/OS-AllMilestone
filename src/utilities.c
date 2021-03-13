@@ -17,7 +17,7 @@ int mod(int x,int y) //Returns x mod y
     return x - y*div(x,y);
 }
 
-void strcmp(char *string1,char *string2,int length) // Returns 1 if equal , 0 if not equal
+int strcmp(char *string1,char *string2,int length) // Returns 1 if equal , 0 if not equal
 {
   int i = 0;
   while(i<length)
