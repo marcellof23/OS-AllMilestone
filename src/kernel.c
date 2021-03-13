@@ -166,6 +166,7 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
   char files[512];
   char sectorsFile[1024];
   int emptyIndex = 0;
+  int totalSector;
   int i, j;
 
   readSector(map,256);
@@ -195,7 +196,6 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
     return;
   }
   // cek sektor penuh/ngga
-  int totalSector;
   for(i = 0; i < 0x100 ;i++)
   {
     if(buffer[i] == 0)
