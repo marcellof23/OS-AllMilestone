@@ -1,18 +1,19 @@
 #include "shell.h"
 #include "utilities.h"
 
-void cwd(char pathIdx) {
+void cwd(char pathIdx, char *dir) {
     int depth = 0;
     char pathOrder[64];
     char *absolutePath;
     char currDir = pathIdx;
     char file[512 * 2];
-    int i, idx;
+    int i, z,idx;
+    int dirindex=0;
+    interrupt(0x21, 0, "~", 0, 0);
+    *(dir+dirindex) = '~'; dirindex++;
     if((unsigned char)currDir != 0xFF) {
         interrupt(0x21, 3, file[0], 0x101, 0);
         interrupt(0x21, 3, file[512], 0x102, 0);
-
-        interrupt(0x21, 0, "~/", 0, 0);
 
         // backtracking to root
         while((unsigned char)currDir != 0xFF) {
@@ -38,8 +39,15 @@ void cwd(char pathIdx) {
         }
         *(absolutePath+idx) = 0x00;
         interrupt(0x21, 0, absolutePath, 0, 0);
+        for(z=0;z<idx;z++){
+            *(dir+dirindex+z) = absolutePath[z];
+        }
+        dirindex += idx;
     }
     interrupt(0x21, 0, "$ ", 0, 0);
+    *(dir+dirindex) = '$';
+    *(dir+dirindex+1) = ' ';
+    *(dir+dirindex+2) = 0x0;
 }
 
 int getPathIdx(char parentIdx, char *filename) { //Get Index file di files
@@ -73,6 +81,7 @@ int getPathIdx(char parentIdx, char *filename) { //Get Index file di files
             i += 16;
         }
     }
+    return -1;
 }
 
 void cd(char *currParentIdx, char *dirPath) {
