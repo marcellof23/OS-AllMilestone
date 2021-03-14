@@ -294,3 +294,28 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
   writeSector(files+0x200,258);
   writeSector(sectorsFile,259);
 }
+
+void listDirectory(char * ListFile ,int * TotalFile,int parentIndex)
+{
+  char sectorsFile[512];
+  char files[1024];
+
+  readSector(files,0x101);
+  readSector(files+0x200,0x102);
+  readSector(sectorsFile,0x103);
+
+  int i,total=0;
+  for(i=0;i<64;i++)
+  {
+    if(files[i * 0x10] == parentIndex)
+    {
+      if(files[i * 0x10 + 2] != 0x00)
+      {
+        *(ListFile+total) = i;
+        total++;
+      }
+    }
+  }
+  *(ListFile+total) = 0xFF;
+  *TotalFile = total;
+}
