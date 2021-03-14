@@ -97,7 +97,7 @@ void cd(char *currParentIdx, char *dirPath) {
 
     parentIdx = *currParentIdx;
     for(j = 0; j <= depth; j++) {
-        parentIdx = getPathIdx(parentIdx, *(pathList[depth]));
+        parentIdx = getPathIdx(parentIdx, pathList[j]);
         if(parentIdx == -1) {
             interrupt(0x21, 0, "No Such Directories", 0, 0);
             break;
