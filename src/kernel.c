@@ -8,6 +8,7 @@ char *image = &imageFile;
 
 void handleInterrupt21 (int AX, int BX, int CX, int DX);
 void printString(char *string);
+void printStringNoNewline(char *string);
 void readString(char *string);
 void clear(char *buffer, int length); //Fungsi untuk mengisi buffer dengan 0
 void printLogo(int x, int y);
@@ -31,18 +32,27 @@ int main () {
 
 
 void handleInterrupt21 (int AX, int BX, int CX, int DX){
-  switch (AX) {
-    case 0x0:
+  char AL, AH;
+  AL = (char) (AX);
+  AH = (char) (AX >> 8);
+  switch (AL) {
+    case 0x00:
       printString(BX);
       break;
-    case 0x1:
+    case 0x01:
       readString(BX);
       break;
-    case 0x2:
-      cls(BX);
-      break;
-    case 0x3:
+    case 0x02:
       readSector(BX, CX);
+      break;
+    case 0x03:
+      writeSector(BX, CX);
+      break;
+    case 0x04:
+      readFile(BX, CX, DX, AH);
+      break;
+    case 0x05:
+      writeFile(BX, CX, DX, AH);
       break;
     default:
       printString("Invalid interrupt");
@@ -68,6 +78,14 @@ void printString(char *string){
   }
   interrupt(0x10,0xe00 + '\n',0,0,0);
   interrupt(0x10,0xe00 + '\r',0,0,0);
+}
+
+void printStringNoNewline(char *string){
+  int i=0;
+  while(*(string+i)!='\0'){
+    interrupt(0x10,0xe00 + *(string+i),0,0,0);
+    i++;
+  }
 }
 
 void readString(char *string){
@@ -164,7 +182,7 @@ void readFile(char *buffer, char *path, int *result, char parentIndex)
         if(sectorsFile[files[i+1]*16+j] != 0x0){
           readSector(buffer+j*512, sectorsFile[files[i+1]*16+j]);
         } else{
-          fillzero(buffer+j*512, 512);
+          clear(buffer+j*512, 512);
         }
       }
     }

@@ -3,8 +3,10 @@
 
 void cwd(char pathIdx);
 
-void cd(char *command);
+void cd(char *currParentIdx, char *dirPath);
 
-int getPathIdx(char pathIdx);
+int getPathIdx(char parentIdx, char *filename);
+
+void ln(char *filepath, char *filelink);
 
 #endif
