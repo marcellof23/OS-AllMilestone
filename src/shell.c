@@ -123,8 +123,8 @@ void ls(char parentIndex)
 {
   char files[1024];
   char *listFiles;
-  readSector(files,257);
-  readSector(files+0x200,258);
+  interrupt(0x21, 3, file[0], 0x101, 0);
+  interrupt(0x21, 3, file[512], 0x102, 0);
   int i = 0,j = 0,total;
   while(i<64)
   {
@@ -152,8 +152,7 @@ void ls(char parentIndex)
         }
       }
     }
-    printString(str[i]);
-    printString("/");
-    i++;
+    interrupt(0x21, 0, str[i], 0, 0);
+    interrupt(0x21, 0, "/", 0, 0);
   }
 }
