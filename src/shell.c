@@ -118,37 +118,17 @@ void cd(char *currParentIdx, char *dirPath) {
 void ln(char *filepath, char *filelink){
     
 }
-void shell(){
-    char command[128];
-    char parentIdx = 0xFF;
-    char dir[128];
-    while(1){
-        cwd(parentIdx,dir);
-        interrupt(0x21,1,command,0,0);
-        interrupt(0x21,0,dir,0,0);
-        interrupt(0x21,0,command,0,0);
-        interrupt(0x21,0,"\n\r",0,0);
-        if(strcmp(command, "cd", strlen(command)) && strlen(command)==2){
-            interrupt(0x21,0, "Cd dipanggil hahaha\n\r",0,0);
-        } else if(strcmp(command, "ls", strlen(command)) && strlen(command)==2 ){
-            interrupt(0x21,0, "Ls dipanggil hahaha\n\r",0,0);
-        } else if(strcmp(command,"cat",strlen(command)) && strlen(command)==3 ){
-            interrupt(0x21,0, "Cat dipanggil hahaha\n\r",0,0);
-        } else{
-            interrupt(0x21,0, "Command tidak ketemu pala bapakkao\n\r");
-        }
-    }
-}
+
 
 void ls(char parentIndex)
 {
   char files[1024];
   char *listFiles;
   int i = 0,j = 0,total;
-  char * str[64];
+  char * filenames[64];
+  char isFile;
   interrupt(0x21, 3, files[0], 0x101, 0);
   interrupt(0x21, 3, files[512], 0x102, 0);
-  
   while(i<64)
   {
     if(files[i*0x10] == parentIndex && files[i*0x10 + 2] != '\0')
@@ -166,16 +146,40 @@ void ls(char parentIndex)
     
     for(j=0;j<14;j++)
     {
-      if(files[i*0x10] == parentIndex)
-      {
-        str[i][j] = files[i * 0x10 + 2 + j];
-        if(files[i * 0x10 + 2 + j] == '\0')
-        {
-            break;
-        }
-      }
+      filenames[i][j] = files[listFiles[i]  * 0x10 + 2 + j];
     }
-    interrupt(0x21, 0, str[i], 0, 0);
-    interrupt(0x21, 0, "/", 0, 0);
+    interrupt(0x21, 0, filenames[i], 0, 0);
+    if(listFiles[i] == 0xFF)
+    {
+        interrupt(0x21, 0, "/", 0, 0);
+    }
+    else
+    {
+        interrupt(0x21, 0, "\r", 0, 0);
+        interrupt(0x21, 0, "\n", 0, 0);
+    }
   }
+}
+
+void shell(){
+    char command[128];
+    char parentIdx = 0xFF;
+    char dir[128];
+    while(1){
+        cwd(parentIdx,dir);
+        ls(parentIdx);
+        interrupt(0x21,1,command,0,0);
+        interrupt(0x21,0,dir,0,0);
+        interrupt(0x21,0,command,0,0);
+        interrupt(0x21,0,"\n\r",0,0);
+        if(strcmp(command, "cd", strlen(command)) && strlen(command)==2){
+            interrupt(0x21,0, "Cd dipanggil hahaha\n\r",0,0);
+        } else if(strcmp(command, "ls", strlen(command)) && strlen(command)==2 ){
+            interrupt(0x21,0, "Ls dipanggil hahaha\n\r",0,0);
+        } else if(strcmp(command,"cat",strlen(command)) && strlen(command)==3 ){
+            interrupt(0x21,0, "Cat dipanggil hahaha\n\r",0,0);
+        } else{
+            interrupt(0x21,0, "Command tidak ketemu pala bapakkaooo\n\r");
+        }
+    }
 }
