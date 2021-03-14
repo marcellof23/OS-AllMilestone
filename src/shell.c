@@ -102,13 +102,18 @@ void cd(char *currParentIdx, char *dirPath) {
             *(pathList[depth] + idx) = *(dirPath+i);
             idx++;
         }
+        i++;
+    }
+
+    while(idx < 14) {
+        *(pathList[depth] + idx) = 0x0;
     }
 
     parentIdx = *currParentIdx;
     for(j = 0; j <= depth; j++) {
         parentIdx = getPathIdx(parentIdx, pathList[j]);
         if(parentIdx == -1) {
-            interrupt(0x21, 0, "No Such Directories", 0, 0);
+            interrupt(0x21, 0, "No Such Directories\n\r", 0, 0);
             break;
         }
     }
