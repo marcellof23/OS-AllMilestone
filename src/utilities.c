@@ -41,10 +41,3 @@ void strslice(char *input,char *res,int start,int end){
         res[i-start] = input[i];
     }
 }
-
-void fillzero(char *buffer,int length){
-    int i;
-    for(i=0;i<length;i++){
-        *(buffer+i) = 0x0;
-    }
-}
