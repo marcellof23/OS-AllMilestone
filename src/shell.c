@@ -123,8 +123,8 @@ void ls(char parentIndex)
 {
   char files[1024];
   char *listFiles;
-  interrupt(0x21, 3, file[0], 0x101, 0);
-  interrupt(0x21, 3, file[512], 0x102, 0);
+  interrupt(0x21, 3, files[0], 0x101, 0);
+  interrupt(0x21, 3, files[512], 0x102, 0);
   int i = 0,j = 0,total;
   while(i<64)
   {
