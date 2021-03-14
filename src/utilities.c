@@ -41,3 +41,14 @@ void strslice(char *input,char *res,int start,int end){
         res[i-start] = input[i];
     }
 }
+
+int strlen(char *string){
+  int count = 0;
+  while(1){
+    if(string[count]==0x0){
+      break;
+    }
+    count++;
+  }
+  return count;
+}

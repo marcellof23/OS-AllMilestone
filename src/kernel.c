@@ -1,4 +1,5 @@
 #include "utilities.h"
+#include "shell.h"
 
 extern imageFile;
 int VIDEO_OFFSET=0x8000;
@@ -27,23 +28,35 @@ int main () {
   handleInterrupt21(0x1,0,0,0);
   cls(3);
   printOSName();
+  handleInterrupt21(0x1,0,0,0);
+  cls(3);
+  shell();
   while (1);
 }
 
 
 void handleInterrupt21 (int AX, int BX, int CX, int DX){
-  switch (AX) {
-    case 0x0:
+  char AL, AH;
+  AL = (char) (AX);
+  AH = (char) (AX >> 8);
+  switch (AL) {
+    case 0x00:
       printString(BX);
       break;
-    case 0x1:
+    case 0x01:
       readString(BX);
       break;
-    case 0x2:
-      cls(BX);
-      break;
-    case 0x3:
+    case 0x02:
       readSector(BX, CX);
+      break;
+    case 0x03:
+      writeSector(BX, CX);
+      break;
+    case 0x04:
+      readFile(BX, CX, DX, AH);
+      break;
+    case 0x05:
+      writeFile(BX, CX, DX, AH);
       break;
     default:
       printString("Invalid interrupt");
@@ -51,24 +64,13 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX){
 }
 
 void printString(char *string){
-  // Menggunakan int 10h AH = 02h dan 09h
-  
-  // int i = 0;
-  // while(*(string+i) != '\0') {
-  //   interrupt(0x10, 0x0200, 0, 0, i);
-  //   interrupt(0x10, 0x0900 + *(string+i), 0x02, 1, 0);
-  //   i++;
-  // }
-  
-  // Menggunakan int 10h AH = 0eh
-
   int i=0;
   while(*(string+i)!='\0'){
     interrupt(0x10,0xe00 + *(string+i),0,0,0);
     i++;
   }
-  interrupt(0x10,0xe00 + '\n',0,0,0);
-  interrupt(0x10,0xe00 + '\r',0,0,0);
+  // interrupt(0x10,0xe00 + '\n',0,0,0);
+  // interrupt(0x10,0xe00 + '\r',0,0,0);
 }
 
 void printStringNoNewline(char *string){
@@ -81,20 +83,26 @@ void printStringNoNewline(char *string){
 
 void readString(char *string){
   int input, i, test;
-  char *testString;
   i = 0;
   input = interrupt(0x16, 0x0000, 0, 0, 0);
   while(input != 0x0d) {
-    interrupt(0x10, 0x0e00 + input, 0, 0, 0);
-    *(testString+i) = input;
-    i++;
-    input = interrupt(0x16, 0x0000, 0, 0, 0);
+    if(input !=0x8){
+      interrupt(0x10, 0x0e00 + input, 0, 0, 0);
+      *(string+i) = input;
+      i++;
+      input = interrupt(0x16, 0x0000, 0, 0, 0);
+    } else{
+      interrupt(0x10, 0x0e00 + input, 0, 0, 0);
+      interrupt(0x10, 0x0e00 + 0x0,0,0);
+      interrupt(0x10, 0x0e00 + input,0,0,0);
+      *(string+i-1) = 0x0;
+      i--;
+      input = interrupt(0x16, 0x0000, 0, 0, 0);
+    }
   }
-  *(testString+i) = 0x0;
+  *(string+i) = 0x0;
 
   printString("\r");
-
-  printString(testString);
 }
 
 void clear(char *buffer, int length){
@@ -121,28 +129,28 @@ void printLogo(int x, int y){
 }
 
 void printOSName(){
-  printString(" /$$$$$$$ /$$  ");
-  printString("| $$__  $|__/ ");
-  printString("| $$  \\ $$/$$ /$$$$$$ ");
-  printString("| $$$$$$$| $$/$$__  $$   ");
-  printString("| $$____/| $| $$$$$$$$ ");
-  printString("| $$     | $| $$_____/ ");
-  printString("| $$     | $|  $$$$$$$ ");
-  printString("|/$$     |/$$\\_______/   ");
-  printString("| $$$    /$$$    ");
-  printString("| $$$$  /$$$$ /$$$$$$  /$$$$$$ /$$$$$$$");
-  printString("| $$ $$/$$ $$/$$__  $$/$$__  $| $$__  $$");
-  printString("| $$  $$$| $| $$  \\ $| $$  \\ $| $$  \\ $$");
-  printString("| $$\\  $ | $| $$  | $| $$  | $| $$  | $$");
-  printString("| $$ \\/  | $|  $$$$$$|  $$$$$$| $$  | $$");
-  printString("|_/$$$$$$|_/$$$$$$__/ \\______/|__/  |__/");
-  printString(" /$$__  $$/$$__  $$ ");
-  printString("| $$  \\ $| $$  \\__/ ");
-  printString("| $$  | $|  $$$$$$    ");
-  printString("| $$  | $$\\____  $$  ");
-  printString("| $$  | $$/$$  \\ $$  ");
-  printString("|  $$$$$$|  $$$$$$/  ");
-  printString(" \\______/ \\______/  ");
+  printString(" /$$$$$$$ /$$  \n\r");
+  printString("| $$__  $|__/ \n\r");
+  printString("| $$  \\ $$/$$ /$$$$$$ \n\r");
+  printString("| $$$$$$$| $$/$$__  $$   \n\r");
+  printString("| $$____/| $| $$$$$$$$ \n\r");
+  printString("| $$     | $| $$_____/ \n\r");
+  printString("| $$     | $|  $$$$$$$ \n\r");
+  printString("|/$$     |/$$\\_______/   \n\r");
+  printString("| $$$    /$$$    \n\r");
+  printString("| $$$$  /$$$$ /$$$$$$  /$$$$$$ /$$$$$$$\n\r");
+  printString("| $$ $$/$$ $$/$$__  $$/$$__  $| $$__  $$\n\r");
+  printString("| $$  $$$| $| $$  \\ $| $$  \\ $| $$  \\ $$\n\r");
+  printString("| $$\\  $ | $| $$  | $| $$  | $| $$  | $$\n\r");
+  printString("| $$ \\/  | $|  $$$$$$|  $$$$$$| $$  | $$\n\r");
+  printString("|_/$$$$$$|_/$$$$$$__/ \\______/|__/  |__/\n\r");
+  printString(" /$$__  $$/$$__  $$ \n\r");
+  printString("| $$  \\ $| $$  \\__/ \n\r");
+  printString("| $$  | $|  $$$$$$    \n\r");
+  printString("| $$  | $$\\____  $$  \n\r");
+  printString("| $$  | $$/$$  \\ $$  \n\r");
+  printString("|  $$$$$$|  $$$$$$/  \n\r");
+  printString(" \\______/ \\______/  \n\r");
 }
 
 void readSector(char *buffer,int sector) {
@@ -194,6 +202,7 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
   int emptyIndex = 0;
   int totalSector;
   int i, j;
+  int sektorkosong,tulis_sektor;
 
   readSector(map,0x100);
   readSector(files,0x101);
@@ -234,6 +243,7 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
     *sectorsFile = -3;
     return;
   }
+  
   //cek sektor penuh 
   for(j = 0; j < 0x20 ;j++)
   {
@@ -273,9 +283,8 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
     }
   }
   i = 0;
-  while(i<*sectors)
+  while(i < *sectors)
   {
-    int sektorkosong,tulis_sektor;
     for(sektorkosong = 0;sektorkosong < 0x100;sektorkosong++)
     {
       if(buffer[sektorkosong] == 0x00)
@@ -295,27 +304,3 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
   writeSector(sectorsFile,259);
 }
 
-void listDirectory(char * ListFile ,int * TotalFile,int parentIndex)
-{
-  char sectorsFile[512];
-  char files[1024];
-
-  readSector(files,0x101);
-  readSector(files+0x200,0x102);
-  readSector(sectorsFile,0x103);
-
-  int i,total=0;
-  for(i=0;i<64;i++)
-  {
-    if(files[i * 0x10] == parentIndex)
-    {
-      if(files[i * 0x10 + 2] != 0x00)
-      {
-        *(ListFile+total) = i;
-        total++;
-      }
-    }
-  }
-  *(ListFile+total) = 0xFF;
-  *TotalFile = total;
-}
