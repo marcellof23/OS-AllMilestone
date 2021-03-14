@@ -130,24 +130,30 @@ void ls(char parentIndex)
   {
     if(files[i*0x10] == parentIndex && files[i*0x10 + 2] != '\0')
     {
+      *(listFiles+j) = i;
       j++;  
     }
     ++i;
   }
   total = j;
+  listFiles[j] = 0xFF;
   char * str[64];
   for(i = 0; i<total;i++)
   {
     
     for(j=0;j<14;j++)
     {
-      str[i][j] = files[i * 0x10 + 2 + j];
-      if(files[i * 0x10 + 2 + j] == '\0')
+      if(files[i*0x10] == parentIndex)
       {
-        break;
+        str[i][j] = files[i * 0x10 + 2 + j];
+        if(files[i * 0x10 + 2 + j] == '\0')
+        {
+            break;
+        }
       }
     }
     printString(str[i]);
+    printString("/");
     i++;
   }
 }
