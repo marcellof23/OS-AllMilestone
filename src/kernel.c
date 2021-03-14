@@ -243,6 +243,7 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
     *sectorsFile = -3;
     return;
   }
+  
   //cek sektor penuh 
   for(j = 0; j < 0x20 ;j++)
   {
@@ -282,7 +283,7 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
     }
   }
   i = 0;
-  while(i<*sectors)
+  while(i < *sectors)
   {
     for(sektorkosong = 0;sektorkosong < 0x100;sektorkosong++)
     {
@@ -303,27 +304,37 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
   writeSector(sectorsFile,259);
 }
 
-void listDirectory(char * ListFile ,int * TotalFile,int parentIndex)
+void listDirectory(char parentIndex)
 {
-  char sectorsFile[512];
   char files[1024];
-  int i,total=0;
-
-  readSector(files,0x101);
-  readSector(files+0x200,0x102);
-  readSector(sectorsFile,0x103);
-
-  for(i=0;i<64;i++)
+  char *listFiles;
+  readSector(files,257);
+  readSector(files+0x200,258);
+  int i = 0,j = 0,total;
+  while(i<64)
   {
-    if(files[i * 0x10] == parentIndex)
+    if(files[i*0x10] == parentIndex && files[i*0x10 + 2] != '\0')
     {
-      if(files[i * 0x10 + 2] != 0x00)
+      *(listFiles+j) = i;
+      j++;  
+    }
+    ++i;
+  }
+  total = j;
+  listFiles[i] = 0xFF;
+  char * str[64];
+  for(i = 0; i<total;i++)
+  {
+    
+    for(j=0;j<14;j++)
+    {
+      str[i][j] = files[i * 0x10 + 2 + j];
+      if(files[i * 0x10 + 2 + j] == '\0')
       {
-        *(ListFile+total) = i;
-        total++;
+        break;
       }
     }
+    printString(str[i]);
+    i++;
   }
-  *(ListFile+total) = 0xFF;
-  *TotalFile = total;
 }
