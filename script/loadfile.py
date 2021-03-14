@@ -52,7 +52,7 @@ for i in range(64):
         break
 
 print("Empty sectors available:",emptysector)
-if(emptysector>sectorneeded and filesectorfound):
+if(emptysector-256>sectorneeded and filesectorfound):
     print("Executing load file...")
     sectors = [0 for i in range(16)]
     i = 0

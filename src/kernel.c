@@ -32,18 +32,27 @@ int main () {
 
 
 void handleInterrupt21 (int AX, int BX, int CX, int DX){
-  switch (AX) {
-    case 0x0:
+  char AL, AH;
+  AL = (char) (AX);
+  AH = (char) (AX >> 8);
+  switch (AL) {
+    case 0x00:
       printString(BX);
       break;
-    case 0x1:
+    case 0x01:
       readString(BX);
       break;
-    case 0x2:
-      cls(BX);
-      break;
-    case 0x3:
+    case 0x02:
       readSector(BX, CX);
+      break;
+    case 0x03:
+      writeSector(BX, CX);
+      break;
+    case 0x04:
+      readFile(BX, CX, DX, AH);
+      break;
+    case 0x05:
+      writeFile(BX, CX, DX, AH);
       break;
     default:
       printString("Invalid interrupt");
