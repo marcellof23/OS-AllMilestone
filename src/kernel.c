@@ -305,37 +305,3 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
   writeSector(sectorsFile,259);
 }
 
-void listDirectory(char parentIndex)
-{
-  char files[1024];
-  char *listFiles;
-  readSector(files,257);
-  readSector(files+0x200,258);
-  int i = 0,j = 0,total;
-  while(i<64)
-  {
-    if(files[i*0x10] == parentIndex && files[i*0x10 + 2] != '\0')
-    {
-      *(listFiles+j) = i;
-      j++;  
-    }
-    ++i;
-  }
-  total = j;
-  listFiles[i] = 0xFF;
-  char * str[64];
-  for(i = 0; i<total;i++)
-  {
-    
-    for(j=0;j<14;j++)
-    {
-      str[i][j] = files[i * 0x10 + 2 + j];
-      if(files[i * 0x10 + 2 + j] == '\0')
-      {
-        break;
-      }
-    }
-    printString(str[i]);
-    i++;
-  }
-}
