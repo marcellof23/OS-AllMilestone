@@ -335,7 +335,7 @@ void listDirectory(char parentIndex)
         break;
       }
     }
-    printString(str[k]);
+    printString(str[i]);
     i++;
   }
 }
