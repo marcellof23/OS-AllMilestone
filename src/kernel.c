@@ -158,13 +158,13 @@ void readFile(char *buffer, char *path, int *result, char parentIndex)
 
   while(i<1024 && !found){
     strslice(files,fileName,i+2,i+16);
-    if(files[i] == parentIndex && files[i+1] != 0xFF && strcmp(fileName,path,14)){
+    if(files[i] == parentIndex && (unsigned char)files[i+1] != 0xFF && strcmp(fileName,path,14)){
       found = 1;
       for(j=0;j<16;j++){
         if(sectorsFile[files[i+1]*16+j] != 0x0){
-          readSector(buffer[j*512], sectorsFile[files[i+1]*16+j]);
+          readSector(buffer+j*512, sectorsFile[files[i+1]*16+j]);
         } else{
-          filzero(buffer[j*512], 512);
+          fillzero(buffer+j*512, 512);
         }
       }
     }
@@ -172,9 +172,9 @@ void readFile(char *buffer, char *path, int *result, char parentIndex)
   }
 
   if(!found){
-    result = -1; 
+    *result = -1; 
   } else{
-    result = 1;
+    *result = 1;
   }
 }
 void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
@@ -239,10 +239,10 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
      return;
   }
   // cek indeks entri = 0xFF 
-  if(files[parentIndex * 0x10 + 1] != 0xFF)
+  if((unsigned char)files[parentIndex * 0x10 + 1] != 0xFF)
   {
     // parentIndex bukan root
-    if(parentIndex != 0xFF)
+    if((unsigned char)parentIndex != 0xFF)
     {
       *sectorsFile = -4;
       return;

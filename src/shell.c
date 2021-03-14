@@ -40,3 +40,18 @@ void cwd(char pathIdx) {
     }
     interrupt(0x21, 0, "$ ", 0, 0);
 }
+
+int getPathIdx(char pathIdx) {
+    char file[512 * 2];
+    int i;
+    interrupt(0x21, 3, file[0], 0x101, 0);
+    interrupt(0x21, 3, file[512], 0x102, 0);
+    i = 0;
+    while(i < 1024) {
+        if(file[i] == pathIdx) {
+            return 1;
+        }
+        i += 16;
+    } 
+    return 0;
+}
