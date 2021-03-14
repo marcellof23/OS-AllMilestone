@@ -55,3 +55,7 @@ int getPathIdx(char pathIdx) {
     } 
     return 0;
 }
+
+void ln(char *filepath, char *filelink){
+    
+}

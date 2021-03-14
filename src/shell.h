@@ -7,4 +7,6 @@ void cd(char *command);
 
 int getPathIdx(char pathIdx);
 
+void ln(char *filepath, char *filelink);
+
 #endif
