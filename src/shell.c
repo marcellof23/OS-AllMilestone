@@ -131,7 +131,6 @@ void ls(char parentIndex)
   char *listFiles;
   int i = 0,j = 0,total;
   char * filenames[64];
-  char isFile;
   interrupt(0x21, 3, files[0], 0x101, 0);
   interrupt(0x21, 3, files[512], 0x102, 0);
   while(i<64)
@@ -148,7 +147,6 @@ void ls(char parentIndex)
   
   for(i = 0; i<total;i++)
   {
-    
     for(j=0;j<14;j++)
     {
       filenames[i][j] = files[listFiles[i]  * 0x10 + 2 + j];
@@ -164,6 +162,17 @@ void ls(char parentIndex)
         interrupt(0x21, 0, "\n", 0, 0);
     }
   }
+}
+
+void cat(char * filenames, char dir)
+{
+    int pathIdx = getPathIdx(dir, filenames);
+    if(pathIdx != 0xFF)
+    {
+        interrupt(0x21, 0, filenames , 0, 0);
+    }
+    interrupt(0x21, 0, filenames , 0, 0);
+    interrupt(0x21, 0, "bukan file", 0, 0);
 }
 
 void shell(){

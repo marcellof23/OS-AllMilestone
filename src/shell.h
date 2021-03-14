@@ -11,6 +11,8 @@ void ln(char *filepath, char *filelink);
 
 void ls(char parentIndex);
 
+void cat(char * filenames, char dir);
+
 void shell();
 
 #endif
