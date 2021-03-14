@@ -7,6 +7,8 @@ int div(int x,int y);
 
 int strcmp(char *string1,char *string2,int length);
 
-void strslice(char *string1,char *string2,int start,int end);
+void strslice(char *input,char *res,int start,int end);
+
+int strlen(char *string);
 
 #endif
