@@ -172,9 +172,9 @@ void readFile(char *buffer, char *path, int *result, char parentIndex)
   }
 
   if(!found){
-    result = -1; 
+    *result = -1; 
   } else{
-    result = 1;
+    *result = 1;
   }
 }
 void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
@@ -239,10 +239,10 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
      return;
   }
   // cek indeks entri = 0xFF 
-  if(files[parentIndex * 0x10 + 1] != 0xFF)
+  if((unsigned char)files[parentIndex * 0x10 + 1] != 0xFF)
   {
     // parentIndex bukan root
-    if(parentIndex != 0xFF)
+    if((unsigned char)parentIndex != 0xFF)
     {
       *sectorsFile = -4;
       return;
