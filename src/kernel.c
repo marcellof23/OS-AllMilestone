@@ -8,6 +8,7 @@ char *image = &imageFile;
 
 void handleInterrupt21 (int AX, int BX, int CX, int DX);
 void printString(char *string);
+void printStringNoNewline(char *string);
 void readString(char *string);
 void clear(char *buffer, int length); //Fungsi untuk mengisi buffer dengan 0
 void printLogo(int x, int y);
@@ -68,6 +69,14 @@ void printString(char *string){
   }
   interrupt(0x10,0xe00 + '\n',0,0,0);
   interrupt(0x10,0xe00 + '\r',0,0,0);
+}
+
+void printStringNoNewline(char *string){
+  int i=0;
+  while(*(string+i)!='\0'){
+    interrupt(0x10,0xe00 + *(string+i),0,0,0);
+    i++;
+  }
 }
 
 void readString(char *string){
@@ -164,7 +173,7 @@ void readFile(char *buffer, char *path, int *result, char parentIndex)
         if(sectorsFile[files[i+1]*16+j] != 0x0){
           readSector(buffer+j*512, sectorsFile[files[i+1]*16+j]);
         } else{
-          fillzero(buffer+j*512, 512);
+          clear(buffer+j*512, 512);
         }
       }
     }
@@ -284,4 +293,29 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
   writeSector(files,257);
   writeSector(files+0x200,258);
   writeSector(sectorsFile,259);
+}
+
+void listDirectory(char * ListFile ,int * TotalFile,int parentIndex)
+{
+  char sectorsFile[512];
+  char files[1024];
+
+  readSector(files,0x101);
+  readSector(files+0x200,0x102);
+  readSector(sectorsFile,0x103);
+
+  int i,total=0;
+  for(i=0;i<64;i++)
+  {
+    if(files[i * 0x10] == parentIndex)
+    {
+      if(files[i * 0x10 + 2] != 0x00)
+      {
+        *(ListFile+total) = i;
+        total++;
+      }
+    }
+  }
+  *(ListFile+total) = 0xFF;
+  *TotalFile = total;
 }
