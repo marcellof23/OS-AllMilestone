@@ -11,7 +11,6 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX);
 void printString(char *string);
 void printStringNoNewline(char *string);
 void readString(char *string);
-void clear(char *buffer, int length); //Fungsi untuk mengisi buffer dengan 0
 void printLogo(int x, int y);
 void printOSName();
 void cls(int displaymode);
@@ -47,7 +46,6 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX){
       readString(BX);
       break;
     case 0x02:
-      printString("Aku adalah baca sektor");
       readSector(BX, CX);
       break;
     case 0x03:
@@ -104,14 +102,6 @@ void readString(char *string){
   *(string+i) = 0x0;
 
   printString("\r");
-}
-
-void clear(char *buffer, int length){
-  int i;
-	for (i = 0; i < length; i++)
-	{
-		buffer[i] = 0x00;
-	}
 }
 
 void cls(int displaymode){

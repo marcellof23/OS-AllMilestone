@@ -11,4 +11,6 @@ void strslice(char *input,char *res,int start,int end);
 
 int strlen(char *string);
 
+void clear(char *buffer, int length); //Fungsi untuk mengisi buffer dengan 0
+
 #endif
