@@ -129,6 +129,7 @@ void ls(char parentIndex)
 {
   char files[1024];
   char *listFiles;
+  char * name;
   int i = 0,j = 0,total;
   char * filenames[64];
   interrupt(0x21, 2, files[0], 0x101, 0);
@@ -147,10 +148,12 @@ void ls(char parentIndex)
   
   for(i = 0; i<total;i++)
   {
+    clear(name,14);
     for(j=0;j<14;j++)
     {
-      filenames[i][j] = files[listFiles[i]  * 0x10 + 2 + j];
+      name[j] = files[listFiles[i]  * 0x10 + 2 + j];
     }
+    filenames[i] = name;
     interrupt(0x21, 0, filenames[i], 0, 0);
     if((unsigned char)listFiles[i] == 0xFF)
     {
