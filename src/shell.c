@@ -133,6 +133,7 @@ void ls(unsigned char parentIndex)
   char * filenames[64];
   interrupt(0x21, 2, files[0], 0x101, 0);
   interrupt(0x21, 2, files[512], 0x102, 0);
+  interrupt(0x21,0,"MASUK GAN",0,0);
   while(i<64)
   {
     if(files[i*0x10] == parentIndex && files[i*0x10 + 2] != '\0')
@@ -145,6 +146,7 @@ void ls(unsigned char parentIndex)
   total = j;
   listFiles[j] = 0xFF;
   
+  interrupt(0x21,0,"MASUK GAN 2",0,0);
   for(i = 0; i<total;i++)
   {
     clear(name,14);
@@ -158,8 +160,8 @@ void ls(unsigned char parentIndex)
     {
         interrupt(0x21, 0, "/", 0, 0);
     }
-    interrupt(0x21, 0, "\r", 0, 0);
     interrupt(0x21, 0, "\n", 0, 0);
+    interrupt(0x21, 0, "\r", 0, 0);
   }
 }
 
@@ -190,7 +192,8 @@ void shell(){
         if(strcmp(command, "cd", strlen(command)) && strlen(command)==2){
             interrupt(0x21,0, "Cd dipanggil hahaha\n\r",0,0);
         } else if(strcmp(command, "ls", strlen(command)) && strlen(command)==2 ){
-            ls(parentIdx);
+            interrupt(0x21,0, "Ls dipanggil hahaha\n\r",0,0);
+            ls((unsigned char)parentIdx);
         } else if(strcmp(command,"cat",strlen(command)) && strlen(command)==3 ){
             interrupt(0x21,0, "Cat dipanggil hahaha\n\r",0,0);
         } else{
