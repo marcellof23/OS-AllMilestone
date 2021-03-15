@@ -12,8 +12,8 @@ void cwd(char pathIdx, char *dir) {
     interrupt(0x21, 0, "~", 0, 0);
     *(dir+dirindex) = '~'; dirindex++;
     if((unsigned char)currDir != 0xFF) {
-        interrupt(0x21, 2, file[0], 0x101, 0);
-        interrupt(0x21, 2, file[512], 0x102, 0);
+        interrupt(0x21, 2, file, 0x101, 0);
+        interrupt(0x21, 2, file + 512, 0x102, 0);
 
         // backtracking to root
         while((unsigned char)currDir != 0xFF) {
@@ -54,8 +54,8 @@ int getPathIdx(char parentIdx, char *filename) { //Get Index file di files
     char file[512 * 2];
     char currFile[14];
     int i;
-    interrupt(0x21, 2, file[0], 0x101, 0);
-    interrupt(0x21, 2, file[512], 0x102, 0);
+    interrupt(0x21, 2, file, 0x101, 0);
+    interrupt(0x21, 2, file + 512, 0x102, 0);
 
     if(*(filename) == '~') {
         return 0xFF;
@@ -131,8 +131,8 @@ void ls(unsigned char parentIndex)
   char * name;
   int i = 0,j = 0,total;
   char * filenames[64];
-  interrupt(0x21, 2, files[0], 0x101, 0);
-  interrupt(0x21, 2, files[512], 0x102, 0);
+  interrupt(0x21, 2, files, 0x101, 0);
+  interrupt(0x21, 2, files+512, 0x102, 0);
   while(i<64)
   {
     if(files[i*0x10] == parentIndex && files[i*0x10 + 2] != '\0')
