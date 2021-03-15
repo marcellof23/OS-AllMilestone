@@ -177,6 +177,24 @@ void cat(char * filenames, char dir)
     interrupt(0x21, 0, "bukan file", 0, 0);
 }
 
+void autoComplete(char *filename, char parentIdx) {
+    char files[512 * 2];
+    char *temp;
+    int i;
+    interrupt(0x21, 2, files, 0x101, 0);
+    interrupt(0x21, 2, files + 512, 0x102, 0);
+
+    i = 0;
+    while(i < 1024) {
+        if(*(files+i) == parentIdx && strcmp(filename, *(files+i+2), strlen(filename))) {
+            strslice(*(files+i+2), temp, strlen(filename), 14);
+            interrupt(0x21, 0, temp, 0, 0);
+            break;
+        }
+        i += 16;
+    }
+}
+
 void shell(){
     char command[128];
     unsigned char parentIdx = 0xFF;
@@ -194,7 +212,7 @@ void shell(){
         } else if(strcmp(command,"cat",strlen(command)) && strlen(command)==3 ){
             interrupt(0x21,0, "Cat dipanggil hahaha\n\r",0,0);
         } else{
-            interrupt(0x21,0, "Command tidak ketemu pala bapakkaooo\n\r");
+            interrupt(0x21,0, "Command tidak ketemu pala bapakkaooo\n\r", 0, 0);
         }
     }
 }

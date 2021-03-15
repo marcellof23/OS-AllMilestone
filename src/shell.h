@@ -13,6 +13,8 @@ void ls(unsigned char parentIndex);
 
 void cat(char * filenames, char dir);
 
+void autoComplete(char *filename, char parentIdx);
+
 void shell();
 
 #endif
