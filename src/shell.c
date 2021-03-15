@@ -159,11 +159,8 @@ void ls(char parentIndex)
     {
         interrupt(0x21, 0, "/", 0, 0);
     }
-    else
-    {
-        interrupt(0x21, 0, "\r", 0, 0);
-        interrupt(0x21, 0, "\n", 0, 0);
-    }
+    interrupt(0x21, 0, "\r", 0, 0);
+    interrupt(0x21, 0, "\n", 0, 0);
   }
 }
 
