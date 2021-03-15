@@ -131,7 +131,7 @@ void shell(){
         if(strcmp(command, "cd", strlen(command)) && strlen(command)==2){
             interrupt(0x21,0, "Cd dipanggil hahaha\n\r",0,0);
         } else if(strcmp(command, "ls", strlen(command)) && strlen(command)==2 ){
-            interrupt(0x21,0, "Ls dipanggil hahaha\n\r",0,0);
+            ls(parentIdx);
         } else if(strcmp(command,"cat",strlen(command)) && strlen(command)==3 ){
             interrupt(0x21,0, "Cat dipanggil hahaha\n\r",0,0);
         } else{
