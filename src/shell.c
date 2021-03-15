@@ -127,8 +127,8 @@ void ln(char *filepath, char *filelink){
 void ls(unsigned char parentIndex)
 {
   char files[1024];
-  char *listFiles;
-  char * name;
+  char listFiles[64];
+  char name[14];
   int i = 0,j = 0,total;
   char * filenames[64];
   interrupt(0x21, 2, files, 0x101, 0);
@@ -143,8 +143,6 @@ void ls(unsigned char parentIndex)
     ++i;
   }
   total = j;
-  listFiles[j] = 0xFF;
-  
   for(i = 0; i<total;i++)
   {
     clear(name,14);
@@ -152,14 +150,10 @@ void ls(unsigned char parentIndex)
     {
       name[j] = files[listFiles[i]  * 0x10 + 2 + j];
     }
-    filenames[i] = name;
-    interrupt(0x21, 0, filenames[i], 0, 0);
-    if((unsigned char)listFiles[i] == 0xFF)
-    {
-        interrupt(0x21, 0, "/", 0, 0);
-    }
-    interrupt(0x21, 0, "\r", 0, 0);
+    // filenames[i] = name;
+    interrupt(0x21, 0, name, 0, 0);
     interrupt(0x21, 0, "\n", 0, 0);
+    interrupt(0x21, 0, "\r", 0, 0);
   }
 }
 
@@ -208,7 +202,8 @@ void shell(){
         if(strcmp(command, "cd", strlen(command)) && strlen(command)==2){
             interrupt(0x21,0, "Cd dipanggil hahaha\n\r",0,0);
         } else if(strcmp(command, "ls", strlen(command)) && strlen(command)==2 ){
-            ls(parentIdx);
+            interrupt(0x21,0, "Ls dipanggil hahaha\n\r",0,0);
+            ls((unsigned char)parentIdx);
         } else if(strcmp(command,"cat",strlen(command)) && strlen(command)==3 ){
             interrupt(0x21,0, "Cat dipanggil hahaha\n\r",0,0);
         } else{
