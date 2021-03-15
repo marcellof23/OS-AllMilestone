@@ -60,3 +60,62 @@ void clear(char *buffer, int length){
 		buffer[i] = 0x00;
 	}
 }
+
+void parseCommand(char *input , int count,char **ptr)
+{
+    char command[8][64];
+    int i=0;
+    int j=0;
+    int z=0;
+    int commandcount=0;
+
+    printf("%s\n",input);
+    
+    for(i=0;i<3;i++)
+    {
+        j=0;
+        printf("\n");
+        while(j<64 && ptr[i][j]!=0){
+            printf("%c",ptr[i][j]);
+            j++;
+        }
+    }
+    
+    for(int i=0;i<8;i++){
+        for(int j=0;j<64;j++){
+            command[i][j] = '\0';
+        }
+    }
+
+    i=0;
+    j=0;
+    
+    while(1){
+        if(input[i]=='\0'){
+            commandcount++;
+            break;
+        } else if(input[i]==' '){
+            commandcount++;
+            z=-1;
+            j++;
+        } else{
+            command[j][z] = input[i];
+        }
+        i++;
+        z++;
+    }
+    
+    for(i=0;i<count;i++)
+    {
+        j=0;
+        while(1){
+            if(ptr[i][j]=='\0'){
+                break;
+            }
+            j++;
+        }
+    }
+    for(i=0;i<2;i++){
+        ptr[i] = command[i];
+    }
+}
