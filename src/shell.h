@@ -9,7 +9,7 @@ int getPathIdx(char parentIdx, char *filename);
 
 void ln(char *filepath, char *filelink);
 
-void ls(char parentIndex);
+void ls(unsigned char parentIndex);
 
 void shell();
 

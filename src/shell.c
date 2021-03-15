@@ -140,14 +140,14 @@ void shell(){
     }
 }
 
-void ls(char parentIndex)
+void ls(unsigned char parentIndex)
 {
   char files[1024];
   char *listFiles;
   int i = 0,j = 0,total;
   char * str[64];
-  interrupt(0x21, 3, files[0], 0x101, 0);
-  interrupt(0x21, 3, files[512], 0x102, 0);
+  interrupt(0x21, 2, files[0], 0x101, 0);
+  interrupt(0x21, 2, files[512], 0x102, 0);
   
   while(i<64)
   {

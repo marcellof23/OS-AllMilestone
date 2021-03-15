@@ -62,7 +62,6 @@ if(emptysector-256>sectorneeded and filesectorfound):
         i+=1
     print("Final map:")
     system[256*512:257*512] = map
-    print("System length" ,len(system))
     print(system[256*512:257*512])
     sectorsindex=0
     for i in range(32):
@@ -73,16 +72,17 @@ if(emptysector-256>sectorneeded and filesectorfound):
             break
     
     system[259*512:260*512] = sector
-    print("System length" ,len(system))
+    print("Final sector sectors:")
+    print(system[259*512:260*512])
     files[filesectorindex*16] = 0xFF
     files[filesectorindex*16+1] = sectorsindex
     for i in range(len(filename)):
         files[filesectorindex*16+2+i] = ord(filename[i])
     system[257*512:259*512] = files
-    print("System length" ,len(system))
+    print("Final files sector:")
+    print(system[257*512:259*512])
     for i in range(sectorneeded):
         system[sectors[i]*512:(sectors[i]+1)*512] = bytes(filechunk[i]).ljust(512,b'\0')
-        print("Chunk",i,"is",system[sectors[i]*512:(sectors[i]+1)*512])
 
     print("System length" ,len(system))
     with open("../output/system.img", 'wb') as f:
