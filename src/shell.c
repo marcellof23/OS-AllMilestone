@@ -161,12 +161,20 @@ void ls(unsigned char parentIndex)
 
 void cat(char * filenames, char parentIdx)
 {
-    char buff[512 * 16];
-    int pathIdx = getPathIdx(parentIdx, filenames);
-    if((unsigned char)pathIdx != 0xFF)
+    char *buff[512 * 16];
+    int idx = strlen(filenames);
+    int pathIdx;
+    while(idx < 14) {
+        *(filenames + idx) = 0x0;
+        idx++;
+    }
+    pathIdx = getPathIdx(parentIdx, filenames);
+    if((unsigned char)pathIdx == parentIdx)
     {
-        interrupt(0x21, 4, buff, 0x101, 0);
-        interrupt(0x21, 0, filenames , 0, 0);
+        interrupt(0x21, 4, buff, pathIdx, 0);
+        interrupt(0x21, 0, " adalah file\r\n", 0, 0);
+        interrupt(0x21, 0, buff , 0, 0);
+        interrupt(0x21, 0, "\r\n" , 0, 0);
         return;
     }
     interrupt(0x21, 0, filenames , 0, 0);
@@ -257,14 +265,14 @@ void shell(){
         
     while(1){
         cwd(parentIdx,dir);
-        if( a == 0)
-        {
-            mkdir( fn ,parentIdx);
-        }
-        else if(a == 1)
-        {
-            mkdir( fn2 ,parentIdx);
-        }
+        // if( a == 0)
+        // {
+        //     mkdir( fn ,parentIdx);
+        // }
+        // else if(a == 1)
+        // {
+        //     mkdir( fn2 ,parentIdx);
+        // }
         a++;
         interrupt(0x21,1,input,0,0);
         strsplit(input,' ',command);
@@ -276,6 +284,7 @@ void shell(){
             ls((unsigned char)parentIdx);
         } else if(strcmp(command[0],"cat",strlen(command[0])) && strlen(command[0])==3 ){
             interrupt(0x21,0, "Cat dipanggil hahaha\r\n",0,0);
+            // interrupt(0x21,0, command[1],0,0);
             cat(command[1],parentIdx);
         } else{
             interrupt(0x21,0, command[0],0,0);
