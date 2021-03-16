@@ -50,7 +50,7 @@ void cwd(char pathIdx, char *dir) {
     *(dir+dirindex+2) = 0x0;
 }
 
-int getPathIdx(char parentIdx, char *filename) { //Get Index file di files
+int getPathIdx(unsigned char parentIdx, char *filename) { //Get Index file di files
     char file[512 * 2];
     char currFile[14];
     int i;
@@ -80,17 +80,18 @@ int getPathIdx(char parentIdx, char *filename) { //Get Index file di files
             }
             i += 16;
         }
+        return -1;
     }
-    return -1;
 }
 
-void cd(char *currParentIdx, char *dirPath) {
+void cd(unsigned char *currParentIdx, char *dirPath) {
     char *pathList[64];
     int parentIdx;
     int i, j, idx, depth;
     i = 0;
     idx = 0;
     depth = 0;
+    
     while(*(dirPath+i) != 0x0) {
         if(*(dirPath+i) == '/') {
             while(idx < 14) {
@@ -104,16 +105,17 @@ void cd(char *currParentIdx, char *dirPath) {
         }
         i++;
     }
-
+    
     while(idx < 14) {
         *(pathList[depth] + idx) = 0x0;
+        idx++;
     }
 
     parentIdx = *currParentIdx;
     for(j = 0; j <= depth; j++) {
         parentIdx = getPathIdx(parentIdx, pathList[j]);
         if(parentIdx == -1) {
-            interrupt(0x21, 0, "No Such Directories\n\r", 0, 0);
+            interrupt(0x21, 0, "No Such Directories\r\n", 0, 0);
             break;
         }
     }
@@ -157,10 +159,10 @@ void ls(unsigned char parentIndex)
   }
 }
 
-void cat(char * filenames, char dir)
+void cat(char * filenames, char parentIdx)
 {
     char buff[512 * 16];
-    int pathIdx = getPathIdx(dir, filenames);
+    int pathIdx = getPathIdx(parentIdx, filenames);
     if((unsigned char)pathIdx != 0xFF)
     {
         interrupt(0x21, 4, buff, 0x101, 0);
@@ -168,7 +170,7 @@ void cat(char * filenames, char dir)
         return;
     }
     interrupt(0x21, 0, filenames , 0, 0);
-    interrupt(0x21, 0, "bukan file", 0, 0);
+    interrupt(0x21, 0, " bukan file\r\n", 0, 0);
 }
 
 void autoComplete(char *filename, char parentIdx) {
@@ -200,25 +202,33 @@ void autoComplete(char *filename, char parentIdx) {
 }
 
 void shell(){
-    char history[4][128];
-    char command[128];
+    int i,j;
+    char input[128];
+    char command[8][64];
     unsigned char parentIdx = 0xFF;
     char dir[128];
+    for(i=0;i<8;i++){
+        for(j=0;j<64;j++){
+            command[i][j] = '\0';
+        }
+    }   
     while(1){
         cwd(parentIdx,dir);
-        interrupt(0x21,1,command,0,0);
-        interrupt(0x21,0,dir,0,0);
-        interrupt(0x21,0,command,0,0);
-        interrupt(0x21,0,"\n\r",0,0);
-        if(strcmp(command, "cd", strlen(command)) && strlen(command)==2){
-            interrupt(0x21,0, "Cd dipanggil hahaha\n\r",0,0);
-        } else if(strcmp(command, "ls", strlen(command)) && strlen(command)==2 ){
-            interrupt(0x21,0, "Ls dipanggil hahaha\n\r",0,0);
+        interrupt(0x21,1,input,0,0);
+        strsplit(input,' ',command);
+        if(strcmp(command[0], "cd", strlen(command[0])) && strlen(command[0])==2){
+            interrupt(0x21,0, "Cd dipanggil hahaha\r\n",0,0);
+            cd(&parentIdx,command[1]);
+        } else if(strcmp(command[0], "ls", strlen(command[0])) && strlen(command[0])==2 ){
+            interrupt(0x21,0, "Ls dipanggil hahaha\r\n",0,0);
             ls((unsigned char)parentIdx);
-        } else if(strcmp(command,"cat",strlen(command)) && strlen(command)==3 ){
-            interrupt(0x21,0, "Cat dipanggil hahaha\n\r",0,0);
+        } else if(strcmp(command[0],"cat",strlen(command[0])) && strlen(command[0])==3 ){
+            interrupt(0x21,0, "Cat dipanggil hahaha\r\n",0,0);
+            cat(command[1],parentIdx);
         } else{
-            interrupt(0x21,0, "Command tidak ketemu pala bapakkaooo\n\r", 0, 0);
+            interrupt(0x21,0, command[0],0,0);
+            interrupt(0x21,0," not found\r\n",0,0);
         }
+        clear(input,128);
     }
 }
