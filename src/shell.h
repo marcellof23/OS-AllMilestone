@@ -13,6 +13,8 @@ void ls(unsigned char parentIndex);
 
 void cat(char * filenames, char dir);
 
+void mkdir( char *filenames,unsigned char parentIndex);
+
 void shell();
 
 #endif
