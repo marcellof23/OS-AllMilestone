@@ -1,11 +1,11 @@
 #include "shell.h"
 #include "utilities.h"
 
-void cwd(char pathIdx, char *dir) {
+void cwd(int pathIdx, char *dir) {
     int depth = 0;
     char pathOrder[64];
     char *absolutePath;
-    char currDir = pathIdx;
+    int currDir = pathIdx;
     char file[512 * 2];
     int i, z,idx;
     int dirindex=0;
