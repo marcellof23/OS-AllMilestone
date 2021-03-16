@@ -298,9 +298,10 @@ void mkdir( char *filenames,unsigned char parentIndex)
 
 
 void shell(){
-    int i,j,commandCount, count;
+    int i, j, commandCount, count, idx;
     int tabPressed = 0, arrowPressed = 0;
     char input[128];
+    char temp[128];
     char command[8][64];
     int parentIdx = 0xFF;
     int targetDir;
@@ -311,8 +312,10 @@ void shell(){
         if(!tabPressed && !arrowPressed) {
             cwd(parentIdx,dir);
         }
+
         interrupt(0x21,1,input,0,0);
         commandCount = strsplit(input,' ',command);
+
         if(*(command[commandCount-1]+strlen(command[commandCount-1])-1) == 0x09) {
 
             //catet posisi terakhir input
@@ -337,7 +340,17 @@ void shell(){
             }
 
             *(input+i) = 0x0;
-            interrupt(0x21, 0, input, 0, 0);
+            for(idx = 0; idx < strlen(input); idx++) {
+                *(temp+idx) = *(input+idx);
+            }
+            *(temp+strlen(input)) = 0x0;
+
+            //overwrite input, add payload to input[0] and input[1]
+            *(input) = 0xFF;
+            *(input+1) = 0xFF;
+            strslice(temp, input+2, 0, strlen(temp));
+            *(input+2+strlen(temp)) = 0x0;
+
             tabPressed = 1;
         } else if((input[0] == 0x00 && input[1] != 0x00)) {
             interrupt(0x21, 0, "arrow keteken", 0, 0);
@@ -373,6 +386,6 @@ void shell(){
             tabPressed = 0;
             arrowPressed = 0;
         }
-        clear(input,128);
+        // clear(input,128);
     }
 }

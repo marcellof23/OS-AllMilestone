@@ -81,11 +81,22 @@ void printStringNoNewline(char *string){
 }
 
 void readString(char *string){
-  int input, i, j, idx, test;
+  int input, i, j, idx, test, copyIdx;
   char filename[14];
   int high, low;
   i = 0;
   input = interrupt(0x16, 0x0000, 0, 0, 0);
+
+  //Check payload, if there is payload then update string first
+  if(string[0] == 0xFF && string[1] == 0xFF) {
+    copyIdx = strlen(string) - 2;
+    while(i < copyIdx) {
+      string[i] = string[i+2];
+      i++;
+    }
+  }
+
+  
   low = input & 0x00FF;
   high = (input & 0xFF00) >> 8;
   while(low != 0x00 && low != 0x0d && low != 0x09 && high != 0x48 && high != 0x50) {
