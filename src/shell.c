@@ -125,11 +125,44 @@ int cd(int currParentIdx, char *dirPath) {
 
 //usage : ln -s original_file linked_file
 // status code : 0 (success), -1 (original_file error) , -2 (linked_file error)
-int ln(char *filepath, char *filelink,int soft){
+int ln(char *filepath, char *filelink,int soft,unsigned char parentIndex){
+    char files[1024];
+    char sectors[512];
+    char pathsfile[16][64];
+    char pathslink[16][64];
+    int countfile = strsplit(filepath,'/',pathsfile);
+    int countlink = strsplit(filelink,'/',pathslink);
+    int idx;
+    char output[100];
+
     if(soft){
         interrupt(0x21,0, "ln soft dipanggil hahaha\r\n",0,0);
+        idx = getPathIdx(parentIndex,filepath);
+        itoa(idx,10,output);
+        interrupt(0x21,0,output,0,0);
+        interrupt(0x21,0,"\r\n",0,0);
+        interrupt(0x21,0,filepath,0,0);
+        interrupt(0x21,0,"\r\n",0,0);
+        if(getPathIdx(parentIndex, filepath)==-1){
+            interrupt(0x21,0, "original file not found\r\n",0,0);
+            return -1;
+        }
+        if(getPathIdx(parentIndex, filelink)==-1){
+            interrupt(0x21,0, "destination folder not found\r\n",0,0);
+            return -2;
+        }
     } else{
         interrupt(0x21,0, "ln hard dipanggil hahaha\r\n",0,0);
+        // idx = getPathIdx(parentIndex,filepath);
+        // interrupt(0x21,0, )
+        if(getPathIdx(parentIndex, filepath)==-1){
+            interrupt(0x21,0, "original file not found\r\n",0,0);
+            return -1;
+        }
+        if(getPathIdx(parentIndex, filelink)==-1){
+            interrupt(0x21,0, "destination folder not found\r\n",0,0);
+            return -2;
+        }
     }
     return 0;
 }
@@ -172,21 +205,22 @@ void cat(char * filenames, char parentIdx)
     char *buff[512 * 16];
     int idx = strlen(filenames);
     int pathIdx;
-    while(idx < 14) {
-        *(filenames + idx) = 0x0;
-        idx++;
-    }
-    pathIdx = getPathIdx(parentIdx, filenames);
-    if((unsigned char)pathIdx == parentIdx)
-    {
-        interrupt(0x21, 4, buff, pathIdx, 0);
-        interrupt(0x21, 0, " adalah file\r\n", 0, 0);
-        interrupt(0x21, 0, buff , 0, 0);
-        interrupt(0x21, 0, "\r\n" , 0, 0);
-        return;
-    }
-    interrupt(0x21, 0, filenames , 0, 0);
-    interrupt(0x21, 0, " bukan file\r\n", 0, 0);
+    // while(idx < 14) {
+    //     *(filenames + idx) = 0x0;
+    //     idx++;
+    // }
+    // pathIdx = getPathIdx(parentIdx, filenames);
+    // if((unsigned char)pathIdx == parentIdx)
+    // {
+    //     interrupt(0x21, 4, buff, pathIdx, 0);
+    //     interrupt(0x21, 0, " adalah file\r\n", 0, 0);
+    //     interrupt(0x21, 0, buff , 0, 0);
+    //     interrupt(0x21, 0, "\r\n" , 0, 0);
+    //     return;
+    // }
+    // interrupt(0x21, 0, filenames , 0, 0);
+    // interrupt(0x21, 0, " bukan file\r\n", 0, 0);
+
 }
 
 void autoComplete(char *filename, char parentIdx) {
@@ -328,9 +362,9 @@ void shell(){
                 mkdir(command[1],parentIdx);
             } else if(strcmp(command[0],"ln",strlen(command[0])) && strlen(command[0])==2){
                 if(strcmp(command[1],"-s",strlen(command[1])) && strlen(command[1])==2){
-                    status = ln(command[1],command[2],1);
+                    status = ln(command[2],command[3],1,parentIdx);
                 } else{
-                    status = ln(command[1],command[2],0);
+                    status = ln(command[1],command[2],0,parentIdx);
                 }
             }else{
                 interrupt(0x21,0, command[0],0,0);

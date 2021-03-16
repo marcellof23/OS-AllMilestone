@@ -7,7 +7,7 @@ int cd(int currParentIdx, char *dirPath);
 
 int getPathIdx(int parentIdx, char *filename);
 
-int ln(char *filepath, char *filelink,int soft);
+int ln(char *filepath, char *filelink,int soft,unsigned char parentIndex);
 
 void ls(unsigned char parentIndex);
 
