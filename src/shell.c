@@ -11,12 +11,12 @@ void cwd(int pathIdx, char *dir) {
     int dirindex=0;
     interrupt(0x21, 0, "~", 0, 0);
     *(dir+dirindex) = '~'; dirindex++;
-    if((unsigned char)currDir != 0xFF) {
+    if(currDir != 0xFF) {
         interrupt(0x21, 2, file, 0x101, 0);
         interrupt(0x21, 2, file + 512, 0x102, 0);
 
         // backtracking to root
-        while((unsigned char)currDir != 0xFF) {
+        while(currDir != 0xFF) {
             pathOrder[depth] = currDir;
             depth++; 
             currDir = file[currDir << 4];
