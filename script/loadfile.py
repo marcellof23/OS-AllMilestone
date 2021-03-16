@@ -13,7 +13,7 @@ with open("../output/system.img", 'rb') as f:
     sector = system[259*512:260*512]
 
 # filepath = input("Input filepath: ")
-filepath = "../misc/b.txt"
+filepath = "../misc/c.txt"
 x = filepath.split("/")
 filename = x[-1]
 print(filename)
