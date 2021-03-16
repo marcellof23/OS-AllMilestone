@@ -45,7 +45,7 @@ void strslice(char *input,char *res,int start,int end){
 int strlen(char *string){
   int count = 0;
   while(1){
-    if(string[count]==0x0){
+    if(string[count]=='\0'){
       break;
     }
     count++;
@@ -94,7 +94,7 @@ void strsplit(char *input,char ptr[][64])
     }
     for(i=0;i<commandcount;i++){
         j=0;
-        while(j<64 && command[i][j]!='\0'){
+        while(j<64){
             ptr[i][j] = command[i][j];
             j++;
         }

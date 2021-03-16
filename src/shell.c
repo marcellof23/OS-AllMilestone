@@ -177,15 +177,14 @@ void shell(){
     char command[8][64];
     unsigned char parentIdx = 0xFF;
     char dir[128];
-    // for(i=0;i<8;i++){
-    //    for(j=0;j<64;j++){
-    //        command[i][j] = '\0';
-    //    }
-    // }
+    for(i=0;i<8;i++){
+        for(j=0;j<64;j++){
+            command[i][j] = '\0';
+        }
+    }   
     while(1){
         cwd(parentIdx,dir);
         interrupt(0x21,1,input,0,0);
-        interrupt(0x21,0,"\n\r",0,0);
         strsplit(input,command);
         if(strcmp(command[0], "cd", strlen(command[0])) && strlen(command[0])==2){
             interrupt(0x21,0, "Cd dipanggil hahaha\n\r",0,0);
@@ -195,9 +194,9 @@ void shell(){
         } else if(strcmp(command[0],"cat",strlen(command[0])) && strlen(command[0])==3 ){
             interrupt(0x21,0, "Cat dipanggil hahaha\n\r",0,0);
         } else{
-            interrupt(0x21,0, "Command tidak ketemu pala bapakkaooo\n\r",0,0);
             interrupt(0x21,0, command[0],0,0);
-            interrupt(0x21,0,"\n\r",0,0);
+            interrupt(0x21,0," not found\n\r",0,0);
         }
+        clear(input,128);
     }
 }

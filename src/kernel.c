@@ -101,6 +101,7 @@ void readString(char *string){
   }
   *(string+i) = 0x0;
 
+  printString("\n");
   printString("\r");
 }
 
