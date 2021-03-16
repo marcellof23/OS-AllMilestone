@@ -7,36 +7,37 @@ void cwd(int pathIdx, char *dir) {
     char *absolutePath;
     int currDir = pathIdx;
     char file[512 * 2];
-    int i, z,idx;
+    int i, z, idx = 0;
     int dirindex=0;
     interrupt(0x21, 0, "~", 0, 0);
     *(dir+dirindex) = '~'; dirindex++;
-    if(currDir != 0xFF) {
+    if((unsigned char)currDir != 0xFF) {
         interrupt(0x21, 2, file, 0x101, 0);
         interrupt(0x21, 2, file + 512, 0x102, 0);
 
         // backtracking to root
         while(currDir != 0xFF) {
             pathOrder[depth] = currDir;
-            depth++; 
+            depth++;
             currDir = file[currDir << 4];
         }
+        *(absolutePath+idx) = '/';
+        idx++;
 
-        idx = 0;
-        depth--;
-        while(depth >= 0) {
+        while(depth != 0) {
+            depth--;
             i = 0;
             while(file[(pathOrder[depth] << 4) + 2 + i] != 0) {
                 *(absolutePath+idx) = file[(pathOrder[depth] << 4) + 2 + i];
                 idx++;
                 i++;
             }
-            if(depth > 0) {
+            if(depth != 0) {
                 *(absolutePath+idx) = '/';
                 idx++;
             }
-            depth--;
         }
+
         *(absolutePath+idx) = 0x00;
         interrupt(0x21, 0, absolutePath, 0, 0);
         for(z=0;z<idx;z++){
@@ -50,7 +51,7 @@ void cwd(int pathIdx, char *dir) {
     *(dir+dirindex+2) = 0x0;
 }
 
-int getPathIdx(unsigned char parentIdx, char *filename) { //Get Index file di files
+int getPathIdx(int parentIdx, char *filename) { //Get Index file di files
     char file[512 * 2];
     char currFile[14];
     int i;
@@ -71,9 +72,9 @@ int getPathIdx(unsigned char parentIdx, char *filename) { //Get Index file di fi
         i = 0;
         while(i < 1024) {
             strslice(file, currFile, i+2, i+16);
-            if(strcmp(filename, currFile, 14) && parentIdx == file[i]) {
+            if(strcmp(filename, currFile, strlen(filename)) && (unsigned char)parentIdx == file[i]) {
                 if((unsigned char)file[i+1] == 0xFF) {
-                    return file[i];
+                    return div(i,16);
                 } else {
                     return -1;
                 }
@@ -84,7 +85,7 @@ int getPathIdx(unsigned char parentIdx, char *filename) { //Get Index file di fi
     }
 }
 
-void cd(unsigned char *currParentIdx, char *dirPath) {
+int cd(int currParentIdx, char *dirPath) {
     char *pathList[64];
     int parentIdx;
     int i, j, idx, depth;
@@ -96,6 +97,7 @@ void cd(unsigned char *currParentIdx, char *dirPath) {
         if(*(dirPath+i) == '/') {
             while(idx < 14) {
                 *(pathList[depth] + idx) = 0x0;
+                idx++;
             }
             idx = 0;
             depth++;
@@ -111,15 +113,14 @@ void cd(unsigned char *currParentIdx, char *dirPath) {
         idx++;
     }
 
-    parentIdx = *currParentIdx;
+    parentIdx = currParentIdx;
     for(j = 0; j <= depth; j++) {
         parentIdx = getPathIdx(parentIdx, pathList[j]);
         if(parentIdx == -1) {
-            interrupt(0x21, 0, "No Such Directories\r\n", 0, 0);
             break;
         }
     }
-    *currParentIdx = parentIdx;
+    return parentIdx;
 }
 
 //usage : ln -s original_file linked_file
@@ -267,7 +268,8 @@ void shell(){
     int tabPressed = 0, arrowPressed = 0;
     char input[128];
     char command[8][64];
-    unsigned char parentIdx = 0xFF;
+    int parentIdx = 0xFF;
+    int targetDir;
     char dir[128];
     int status;
         
@@ -309,7 +311,12 @@ void shell(){
         } else {
             if(strcmp(command[0], "cd", strlen(command[0])) && strlen(command[0])==2){
                 interrupt(0x21,0, "Cd dipanggil hahaha\r\n",0,0);
-                cd(&parentIdx,command[1]);
+                targetDir = cd(parentIdx,command[1]);
+                if(targetDir != -1) {
+                    parentIdx = targetDir;
+                } else {
+                    interrupt(0x21,0, "No such directory\r\n",0,0);
+                }
             } else if(strcmp(command[0], "ls", strlen(command[0])) && strlen(command[0])==2 ){
                 interrupt(0x21,0, "Ls dipanggil hahaha\r\n",0,0);
                 ls((unsigned char)parentIdx);

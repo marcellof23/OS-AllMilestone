@@ -3,9 +3,9 @@
 
 void cwd(int pathIdx,char *dir);
 
-void cd(unsigned char *currParentIdx, char *dirPath);
+int cd(int currParentIdx, char *dirPath);
 
-int getPathIdx(unsigned char parentIdx, char *filename);
+int getPathIdx(int parentIdx, char *filename);
 
 int ln(char *filepath, char *filelink,int soft);
 
