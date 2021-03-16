@@ -15,4 +15,6 @@ void clear(char *buffer, int length); //Fungsi untuk mengisi buffer dengan 0
 
 int strsplit(char *input ,char param,char ptr[][64]);
 
+void itoa(int num, int basis, char * output);
+
 #endif
