@@ -333,16 +333,21 @@ void mkdir( char *filenames,unsigned char parentIndex)
 
 
 void shell(){
-    int i, j, commandCount, count, idx;
+    int i, j, commandCount, historyCount = 3, historyIdx, count, idx;
     int tabPressed = 0, arrowPressed = 0;
     char input[128];
     char temp[128];
+    char history[4][128];
     char command[8][64];
     int parentIdx = 0xFF;
     int targetDir;
     char dir[128];
     int status;
         
+    for(i = 0; i < 4; i++) {
+        clear(history[i], 128);
+    }
+
     while(1){
         if(!tabPressed && !arrowPressed) {
             cwd(parentIdx,dir);
@@ -386,6 +391,23 @@ void shell(){
             strslice(temp, input+2, 0, strlen(temp));
             *(input+2+strlen(temp)) = 0x0;
 
+            //simpen command ke history
+            if(historyCount >= 0) {
+                strslice(temp, history[historyCount], 0, strlen(temp));
+                *(history[historyCount] + strlen(temp)) = 0x0;
+                historyCount--;
+            } else {
+                historyIdx = 3;
+                while(historyIdx > 0) {
+                    strslice(history[historyIdx-1], history[historyIdx], 0, strlen(history[historyIdx-1]));
+                    *(history[historyIdx] + strlen(history[historyIdx-1])) = 0x0;
+                    historyIdx--;
+                }
+                strslice(temp, history[0], 0, strlen(temp));
+                *(history[0] + strlen(temp)) = 0x0;
+                historyCount = 0;
+            }
+
             tabPressed = 1;
         } else if((input[0] == 0x00 && input[1] != 0x00)) {
             interrupt(0x21, 0, "arrow keteken", 0, 0);
@@ -414,10 +436,38 @@ void shell(){
                 } else{
                     status = ln(command[1],command[2],0,parentIdx);
                 }
+            } else if(strcmp(command[0],"history",strlen(command[0])) && strlen(command[0])==7) {
+                interrupt(0x21,0,"history dipanggil hahaha\n\r",0,0);
+                for(i = 0; i < 4; i++) {
+                    if(*(history[i]) == 0x0) {
+                        continue;
+                    } else {
+                        interrupt(0x21, 0, history[i], 0, 0);
+                        interrupt(0x21, 0, "\n\r", 0, 0);
+                    }
+                }
             }else{
                 interrupt(0x21,0, command[0],0,0);
                 interrupt(0x21,0," not found\r\n",0,0);
             }
+
+            //simpen command ke history
+            if(historyCount >= 0) {
+                strslice(input, history[historyCount], 0, strlen(input));
+                *(history[historyCount] + strlen(input)) = 0x0;
+                historyCount--;
+            } else {
+                historyIdx = 3;
+                while(historyIdx > 0) {
+                    strslice(history[historyIdx-1], history[historyIdx], 0, strlen(history[historyIdx-1]));
+                    *(history[historyIdx] + strlen(history[historyIdx-1])) = 0x0;
+                    historyIdx--;
+                }
+                strslice(input, history[0], 0, strlen(input));
+                *(history[0] + strlen(input)) = 0x0;
+                historyCount = 0;
+            }
+            
             tabPressed = 0;
             arrowPressed = 0;
         }
