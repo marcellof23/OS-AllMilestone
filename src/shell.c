@@ -122,8 +122,15 @@ void cd(unsigned char *currParentIdx, char *dirPath) {
     *currParentIdx = parentIdx;
 }
 
-void ln(char *filepath, char *filelink){
-    
+//usage : ln -s original_file linked_file
+// status code : 0 (success), -1 (original_file error) , -2 (linked_file error)
+int ln(char *filepath, char *filelink,int soft){
+    if(soft){
+        interrupt(0x21,0, "ln soft dipanggil hahaha\r\n",0,0);
+    } else{
+        interrupt(0x21,0, "ln hard dipanggil hahaha\r\n",0,0);
+    }
+    return 0;
 }
 
 void ls(unsigned char parentIndex)
@@ -262,23 +269,12 @@ void shell(){
     char command[8][64];
     unsigned char parentIdx = 0xFF;
     char dir[128];
-    int a = 0;
-    char *fn = "FolderAsem";
-    char *fn2 = "FolderNangis";
+    int status;
         
     while(1){
         if(!tabPressed && !arrowPressed) {
             cwd(parentIdx,dir);
         }
-        // if( a == 0)
-        // {
-        //     mkdir( fn ,parentIdx);
-        // }
-        // else if(a == 1)
-        // {
-        //     mkdir( fn2 ,parentIdx);
-        // }
-        // a++;
         interrupt(0x21,1,input,0,0);
         commandCount = strsplit(input,' ',command);
         if(*(command[commandCount-1]+strlen(command[commandCount-1])-1) == 0x09) {
@@ -321,7 +317,15 @@ void shell(){
                 interrupt(0x21,0, "Cat dipanggil hahaha\r\n",0,0);
                 // interrupt(0x21,0, command[1],0,0);
                 cat(command[1],parentIdx);
-            } else{
+            } else if(strcmp(command[0],"mkdir",strlen(command[0])) && strlen(command[0])==5){
+                mkdir(command[1],parentIdx);
+            } else if(strcmp(command[0],"ln",strlen(command[0])) && strlen(command[0])==2){
+                if(strcmp(command[1],"-s",strlen(command[1])) && strlen(command[1])==2){
+                    status = ln(command[1],command[2],1);
+                } else{
+                    status = ln(command[1],command[2],0);
+                }
+            }else{
                 interrupt(0x21,0, command[0],0,0);
                 interrupt(0x21,0," not found\r\n",0,0);
             }
