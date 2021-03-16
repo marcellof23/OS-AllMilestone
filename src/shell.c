@@ -71,9 +71,9 @@ int getPathIdx(unsigned char parentIdx, char *filename) { //Get Index file di fi
         i = 0;
         while(i < 1024) {
             strslice(file, currFile, i+2, i+16);
-            if(strcmp(filename, currFile, 14) && parentIdx == file[i]) {
+            if(strcmp(filename, currFile, strlen(filename)) && parentIdx == file[i]) {
                 if((unsigned char)file[i+1] == 0xFF) {
-                    return file[i];
+                    return mod(i,16);
                 } else {
                     return -1;
                 }
@@ -82,6 +82,40 @@ int getPathIdx(unsigned char parentIdx, char *filename) { //Get Index file di fi
         }
         return -1;
     }
+}
+
+int getFilePathIdx(unsigned char parentIdx, char *filepath){ // -1 if not found else files idx
+    char file[1024];
+    char currFile[14];
+    char pathchunks[32][64];
+    int i,j;
+    int totalchunks = strsplit(filepath,'/', pathchunks);
+    int fileidxlooper = parentIdx;
+
+    interrupt(0x21, 2, file, 0x101, 0);
+    interrupt(0x21, 2, file + 512, 0x102, 0);
+    for(i=0;i<totalchunks;i++){
+        if(fileidxlooper == -1){
+            return -1;
+        }
+        interrupt(0x21,0,"Printing chunks \r\n",0,0);
+        interrupt(0x21,0,pathchunks[i]);
+        interrupt(0x21,0,"\r\n",0,0);
+        if(i==totalchunks-1){ //Finale
+            for(j=0;j<1024;j+=16){
+                if(file[j]==fileidxlooper && (unsigned char)file[j+1]!=0xFF){
+                    strslice(file,currFile,j+2,j+16);
+                    if(strcmp(currFile,pathchunks[i],strlen(currFile)) && strlen(currFile)==strlen(pathchunks[i])){
+                        return div(j,16);
+                    }
+                }
+            }
+            return -1;
+        } else{ //Folder
+            fileidxlooper = getPathIdx(fileidxlooper, pathchunks[i]);
+        }
+    }
+    return parentIdx;
 }
 
 void cd(unsigned char *currParentIdx, char *dirPath) {
@@ -136,17 +170,17 @@ int ln(char *filepath, char *filelink,int soft,unsigned char parentIndex){
 
     if(soft){
         interrupt(0x21,0, "ln soft dipanggil hahaha\r\n",0,0);
-        idx = getPathIdx(parentIndex,filepath);
+        idx = getFilePathIdx(parentIndex,filepath);
         itoa(idx,10,output);
         interrupt(0x21,0,output,0,0);
         interrupt(0x21,0,"\r\n",0,0);
         interrupt(0x21,0,filepath,0,0);
         interrupt(0x21,0,"\r\n",0,0);
-        if(getPathIdx(parentIndex, filepath)==-1){
+        if(getFilePathIdx(parentIndex, filepath)==-1){
             interrupt(0x21,0, "original file not found\r\n",0,0);
             return -1;
         }
-        if(getPathIdx(parentIndex, filelink)==-1){
+        if(getFilePathIdx(parentIndex, filelink)==-1){
             interrupt(0x21,0, "destination folder not found\r\n",0,0);
             return -2;
         }
@@ -154,11 +188,11 @@ int ln(char *filepath, char *filelink,int soft,unsigned char parentIndex){
         interrupt(0x21,0, "ln hard dipanggil hahaha\r\n",0,0);
         // idx = getPathIdx(parentIndex,filepath);
         // interrupt(0x21,0, )
-        if(getPathIdx(parentIndex, filepath)==-1){
+        if(getFilePathIdx(parentIndex, filepath)==-1){
             interrupt(0x21,0, "original file not found\r\n",0,0);
             return -1;
         }
-        if(getPathIdx(parentIndex, filelink)==-1){
+        if(getFilePathIdx(parentIndex, filelink)==-1){
             interrupt(0x21,0, "destination folder not found\r\n",0,0);
             return -2;
         }
