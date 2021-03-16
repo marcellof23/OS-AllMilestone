@@ -231,27 +231,31 @@ void ls(unsigned char parentIndex)
   }
 }
 
-void cat(char * filenames, char parentIdx)
+void cat(char * filenames, unsigned char parentIdx)
 {
-    char *buff[512 * 16];
+    char files[1024];
+    char buff[512 * 16];
     int idx = strlen(filenames);
     int pathIdx;
-    // while(idx < 14) {
-    //     *(filenames + idx) = 0x0;
-    //     idx++;
-    // }
-    // pathIdx = getPathIdx(parentIdx, filenames);
-    // if((unsigned char)pathIdx == parentIdx)
-    // {
-    //     interrupt(0x21, 4, buff, pathIdx, 0);
-    //     interrupt(0x21, 0, " adalah file\r\n", 0, 0);
-    //     interrupt(0x21, 0, buff , 0, 0);
-    //     interrupt(0x21, 0, "\r\n" , 0, 0);
-    //     return;
-    // }
-    // interrupt(0x21, 0, filenames , 0, 0);
-    // interrupt(0x21, 0, " bukan file\r\n", 0, 0);
-
+    char * output;
+    char * currfile;
+    interrupt(0x21, 2, files, 0x101, 0);
+    interrupt(0x21, 2, files+512, 0x102, 0);
+    while(idx < 14) {
+        *(filenames + idx) = 0x0;
+        idx++;
+    }
+    pathIdx = getFilePathIdx(parentIdx, filenames);
+    itoa(pathIdx, 10, output);
+    if(pathIdx>=0 && *output != '\0')
+    {
+        interrupt(0x21, 4 + 0x100*files[0x10*pathIdx], buff, filenames, 0);
+        interrupt(0x21, 0, " adalah file\r\n", 0, 0);
+        interrupt(0x21, 0, buff , 0, 0);
+        interrupt(0x21, 0, "\r\n" , 0, 0);
+        return;
+    }
+    interrupt(0x21, 0, "file tidak ditemukan\r\n", 0, 0);
 }
 
 void autoComplete(char *filename, char parentIdx) {

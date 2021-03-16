@@ -13,7 +13,7 @@ int ln(char *filepath, char *filelink,int soft,unsigned char parentIndex);
 
 void ls(unsigned char parentIndex);
 
-void cat(char * filenames, char dir);
+void cat(char * filenames,unsigned char dir);
 
 void mkdir( char *filenames,unsigned char parentIndex);
 
