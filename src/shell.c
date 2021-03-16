@@ -312,10 +312,12 @@ void cat(char * filenames, unsigned char parentIdx)
     }
     pathIdx = getFilePathIdx(parentIdx, filenames);
     itoa(pathIdx, 10, output);
+    // interrupt(0x21, 0, output, 0, 0);
+    // interrupt(0x21, 0, "\r\n", 0, 0);
+    // interrupt(0x21, 0, filenames, 0, 0);
     if(pathIdx>=0 && *output != '\0')
     {
         interrupt(0x21, 4 + 0x100*files[0x10*pathIdx], buff, filenames, 0);
-        interrupt(0x21, 0, " adalah file\r\n", 0, 0);
         interrupt(0x21, 0, buff , 0, 0);
         interrupt(0x21, 0, "\r\n" , 0, 0);
         return;
@@ -374,7 +376,7 @@ void mkdir( char *filenames,unsigned char parentIndex)
     {
         j++;
     } 
-    if(j <= 0 || j >= 64)
+    if(j < 0 || j >= 64)
     {
         interrupt(0x21, 0, "Sudah tidak bisa ditambah \r\n", 0, 0);
     }
