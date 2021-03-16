@@ -13,11 +13,9 @@ void ls(unsigned char parentIndex);
 
 void cat(char * filenames, char dir);
 
-<<<<<<< HEAD
 void mkdir( char *filenames,unsigned char parentIndex);
-=======
+
 void autoComplete(char *filename, char parentIdx);
->>>>>>> a644fb39bbac5b209c39fb7d0ac09b265dec9622
 
 void shell();
 
