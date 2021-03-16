@@ -200,6 +200,52 @@ void autoComplete(char *filename, char parentIdx) {
         i += 16;
     }
 }
+// void mkdir( char *filenames,unsigned char parentIndex)
+// {
+//     char files[1024];
+//     int i = 0, InitIdx;
+//     int j = 0;
+//     interrupt(0x21, 0, "mkdir dipanggil hahaha\n\r",0,0);
+//     interrupt(0x21, 2, files, 0x101, 0);
+//     interrupt(0x21, 2, files+512, 0x102, 0);
+//     interrupt(0x21, 0, "Sedang diproses \n\r", 0, 0);
+//     while(i<0x40)
+//     {
+//         if(files[i * 0x10] == parentIndex && (strcmp(filenames,files + (i * 16) + 2 ,14) == 1) )
+//         {
+//             interrupt(0x21, 0, "Folder sudah ada \r\n", 0, 0);
+//             return;
+//         }
+//         i++;
+//     }
+//     interrupt(0x21, 0, "Sedang diproses \r\n", 0, 0);
+    
+//     while(files[j*0x10+2] != '\0' )
+//     {
+//         j++;
+//     } 
+//     if(j <= 0 || j >= 64)
+//     {
+//         interrupt(0x21, 0, "Sudah tidak bisa ditambah \r\n", 0, 0);
+//     }
+//     else
+//     {
+//         InitIdx = j * 0x10;
+//         files[InitIdx] = parentIndex;
+//         files[InitIdx + 1] = 0xFF;
+//         for(i = 0 ;i < 14; i++)
+//         {
+//             if(filenames[i] == '\0')
+//                 break;
+//             files[InitIdx + i + 2] = filenames[i];
+//         }
+//     }
+//     interrupt(0x21, 3, files, 0x101, 0);
+//     interrupt(0x21, 3, files+512, 0x102, 0);
+
+//     interrupt(0x21, 0, filenames, 0, 0);
+// }
+
 
 void shell(){
     int i,j;
@@ -207,13 +253,17 @@ void shell(){
     char command[8][64];
     unsigned char parentIdx = 0xFF;
     char dir[128];
-    for(i=0;i<8;i++){
-        for(j=0;j<64;j++){
-            command[i][j] = '\0';
-        }
-    }   
+    int a = 0;
+    char *fn = "asemmm";
+        
     while(1){
         cwd(parentIdx,dir);
+        // if( a == 0)
+        // {
+        //     mkdir( fn ,parentIdx);
+        //     interrupt(0x21,1,command,0,0);
+        // }
+        // a++;
         interrupt(0x21,1,input,0,0);
         if(input[0] == 0x00 && input[1] != 0x00) {
             interrupt(0x21, 0, "ARROW GAN", 0, 0);
