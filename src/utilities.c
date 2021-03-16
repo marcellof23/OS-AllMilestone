@@ -17,6 +17,56 @@ int mod(int x,int y) //Returns x mod y
     return x - y*div(x,y);
 }
 
+void itoa(int num, int basis, char * output) 
+{ 
+    int i = 0; 
+    int isMinus = 0; 
+    char str[100]; 
+    int x,s,e,rem;
+    if (num == 0) 
+    { 
+        str[i++] = '0'; 
+        str[i] = '\0'; 
+        x = 0;
+        while(str[x] != '\0')
+   *output++ = str[x++];
+  *output = '\0';
+        return;
+    } 
+  
+    if (num < 0 && basis == 10) 
+    { 
+        isMinus = 1; 
+        num *= -1; 
+    } 
+    while (num != 0) 
+    { 
+        rem = mod(num, basis); 
+        str[i++] = (rem > 9)? (rem-10) + 'a' : rem + '0'; 
+        num = num/basis; 
+    } 
+  
+    if (isMinus) 
+        str[i++] = '-'; 
+  
+    str[i] = '\0';
+    s = 0; 
+    e = i -1; 
+    while (s < e) 
+    { 
+        char tmp = *(str+s);
+        *(str+s) = *(str+e);
+        *(str+e) = tmp;
+        s++; 
+        e--; 
+    }
+    x = 0;
+    while(str[x] != '\0')
+  *output++ = str[x++];
+ *output = '\0';
+    return;
+} 
+
 int strcmp(char *string1,char *string2,int length) // Returns 1 if equal , 0 if not equal
 {
   int i = 0;
@@ -40,6 +90,21 @@ void strslice(char *input,char *res,int start,int end){
     for(i=start;i<end;i++){
         res[i-start] = input[i];
     }
+}
+
+int isempty(char *buffer,int length){
+    int i;
+    char test[20];
+    for(i=0;i<length;i++){
+        if(buffer[i]!=0x0){
+            interrupt(0x21,0,"YA DISINI!\r\n",0,0);
+            itoa(buffer[i],10,test);
+            interrupt(0x21,0,test,0,0);
+            interrupt(0x21,0,"\r\n",0,0);
+            return 0;
+        }
+    }
+    return 1;
 }
 
 int strlen(char *string){
@@ -101,53 +166,3 @@ int strsplit(char *input,char param,char ptr[][64])
     }
     return commandcount;
 }
-
-void itoa(int num, int basis, char * output) 
-{ 
-    int i = 0; 
-    int isMinus = 0; 
-    char str[100]; 
-    int x,s,e,rem;
-    if (num == 0) 
-    { 
-        str[i++] = '0'; 
-        str[i] = '\0'; 
-        x = 0;
-        while(str[x] != '\0')
-   *output++ = str[x++];
-  *output = '\0';
-        return;
-    } 
-  
-    if (num < 0 && basis == 10) 
-    { 
-        isMinus = 1; 
-        num *= -1; 
-    } 
-    while (num != 0) 
-    { 
-        rem = mod(num, basis); 
-        str[i++] = (rem > 9)? (rem-10) + 'a' : rem + '0'; 
-        num = num/basis; 
-    } 
-  
-    if (isMinus) 
-        str[i++] = '-'; 
-  
-    str[i] = '\0';
-    s = 0; 
-    e = i -1; 
-    while (s < e) 
-    { 
-        char tmp = *(str+s);
-        *(str+s) = *(str+e);
-        *(str+e) = tmp;
-        s++; 
-        e--; 
-    }
-    x = 0;
-    while(str[x] != '\0')
-  *output++ = str[x++];
- *output = '\0';
-    return;
-} 
