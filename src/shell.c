@@ -202,6 +202,8 @@ void autoComplete(char *filename, char parentIdx) {
         if(files[i] == parentIdx && strcmp(filename, currFilename, strlen(filename))) {
             strslice(files, temp, i+2+strlen(filename), i+16);
             interrupt(0x21, 0, temp, 0, 0);
+
+            //update filename
             idxFilename = strlen(filename);
             idxTemp = 0;
             while(*(temp+idxTemp) != 0x0) {
@@ -261,7 +263,8 @@ void mkdir( char *filenames,unsigned char parentIndex)
 
 
 void shell(){
-    int i,j;
+    int i,j,commandCount, count;
+    int tabPressed = 0, arrowPressed = 0;
     char input[128];
     char command[8][64];
     unsigned char parentIdx = 0xFF;
@@ -269,30 +272,61 @@ void shell(){
     int status;
         
     while(1){
-        cwd(parentIdx,dir);
+        if(!tabPressed && !arrowPressed) {
+            cwd(parentIdx,dir);
+        }
         interrupt(0x21,1,input,0,0);
-        strsplit(input,' ',command);
-        if(strcmp(command[0], "cd", strlen(command[0])) && strlen(command[0])==2){
-            interrupt(0x21,0, "Cd dipanggil hahaha\r\n",0,0);
-            cd(&parentIdx,command[1]);
-        } else if(strcmp(command[0], "ls", strlen(command[0])) && strlen(command[0])==2 ){
-            interrupt(0x21,0, "Ls dipanggil hahaha\r\n",0,0);
-            ls((unsigned char)parentIdx);
-        } else if(strcmp(command[0],"cat",strlen(command[0])) && strlen(command[0])==3 ){
-            interrupt(0x21,0, "Cat dipanggil hahaha\r\n",0,0);
-            // interrupt(0x21,0, command[1],0,0);
-            cat(command[1],parentIdx);
-        } else if(strcmp(command[0],"mkdir",strlen(command[0])) && strlen(command[0])==5){
-            mkdir(command[1],parentIdx);
-        } else if(strcmp(command[0],"ln",strlen(command[0])) && strlen(command[0])==2){
-            if(strcmp(command[1],"-s",strlen(command[1])) && strlen(command[1])==2){
-                status = ln(command[1],command[2],1);
-            } else{
-                status = ln(command[1],command[2],0);
+        commandCount = strsplit(input,' ',command);
+        if(*(command[commandCount-1]+strlen(command[commandCount-1])-1) == 0x09) {
+
+            count = 0;
+            for(i = 0; i < commandCount; i++) {
+                count += strlen(command[i]);
             }
-        }else{
-            interrupt(0x21,0, command[0],0,0);
-            interrupt(0x21,0," not found\r\n",0,0);
+            count += commandCount - 2;
+            j = strlen(command[commandCount-1])-1;
+
+            *(command[commandCount-1]+strlen(command[commandCount-1])-1) = 0x0;
+            autoComplete(command[commandCount-1], parentIdx);
+            
+            i = count;
+            while(j < strlen(command[commandCount-1])) {
+                *(input+i) = *(command[commandCount-1]+j);
+                i++;
+                j++;
+            }
+
+            *(input+i) = 0x0;
+            interrupt(0x21, 0, input, 0, 0);
+            tabPressed = 1;
+        } else if((input[0] == 0x00 && input[1] != 0x00)) {
+            interrupt(0x21, 0, "arrow keteken", 0, 0);
+            arrowPressed = 1;
+        } else {
+            if(strcmp(command[0], "cd", strlen(command[0])) && strlen(command[0])==2){
+                interrupt(0x21,0, "Cd dipanggil hahaha\r\n",0,0);
+                cd(&parentIdx,command[1]);
+            } else if(strcmp(command[0], "ls", strlen(command[0])) && strlen(command[0])==2 ){
+                interrupt(0x21,0, "Ls dipanggil hahaha\r\n",0,0);
+                ls((unsigned char)parentIdx);
+            } else if(strcmp(command[0],"cat",strlen(command[0])) && strlen(command[0])==3 ){
+                interrupt(0x21,0, "Cat dipanggil hahaha\r\n",0,0);
+                // interrupt(0x21,0, command[1],0,0);
+                cat(command[1],parentIdx);
+            } else if(strcmp(command[0],"mkdir",strlen(command[0])) && strlen(command[0])==5){
+                mkdir(command[1],parentIdx);
+            } else if(strcmp(command[0],"ln",strlen(command[0])) && strlen(command[0])==2){
+                if(strcmp(command[1],"-s",strlen(command[1])) && strlen(command[1])==2){
+                    status = ln(command[1],command[2],1);
+                } else{
+                    status = ln(command[1],command[2],0);
+                }
+            }else{
+                interrupt(0x21,0, command[0],0,0);
+                interrupt(0x21,0," not found\r\n",0,0);
+            }
+            tabPressed = 0;
+            arrowPressed = 0;
         }
         clear(input,128);
     }
