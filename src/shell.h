@@ -3,7 +3,7 @@
 
 void cwd(char pathIdx,char *dir);
 
-void cd(char *currParentIdx, char *dirPath);
+void cd(unsigned char *currParentIdx, char *dirPath);
 
 int getPathIdx(char parentIdx, char *filename);
 

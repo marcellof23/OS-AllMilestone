@@ -84,7 +84,7 @@ int getPathIdx(char parentIdx, char *filename) { //Get Index file di files
     return -1;
 }
 
-void cd(char *currParentIdx, char *dirPath) {
+void cd(unsigned char *currParentIdx, char *dirPath) {
     char *pathList[64];
     int parentIdx;
     int i, j, idx, depth;
@@ -113,7 +113,7 @@ void cd(char *currParentIdx, char *dirPath) {
     for(j = 0; j <= depth; j++) {
         parentIdx = getPathIdx(parentIdx, pathList[j]);
         if(parentIdx == -1) {
-            interrupt(0x21, 0, "No Such Directories\n\r", 0, 0);
+            interrupt(0x21, 0, "No Such Directories\r\n", 0, 0);
             break;
         }
     }
@@ -157,10 +157,10 @@ void ls(unsigned char parentIndex)
   }
 }
 
-void cat(char * filenames, char dir)
+void cat(char * filenames, char parentIdx)
 {
     char buff[512 * 16];
-    int pathIdx = getPathIdx(dir, filenames);
+    int pathIdx = getPathIdx(parentIdx, filenames);
     if((unsigned char)pathIdx != 0xFF)
     {
         interrupt(0x21, 4, buff, 0x101, 0);
@@ -168,7 +168,7 @@ void cat(char * filenames, char dir)
         return;
     }
     interrupt(0x21, 0, filenames , 0, 0);
-    interrupt(0x21, 0, "bukan file", 0, 0);
+    interrupt(0x21, 0, "bukan file\r\n", 0, 0);
 }
 
 void shell(){
@@ -187,15 +187,17 @@ void shell(){
         interrupt(0x21,1,input,0,0);
         strsplit(input,command);
         if(strcmp(command[0], "cd", strlen(command[0])) && strlen(command[0])==2){
-            interrupt(0x21,0, "Cd dipanggil hahaha\n\r",0,0);
+            interrupt(0x21,0, "Cd dipanggil hahaha\r\n",0,0);
+            cd(&parentIdx,command[1]);
         } else if(strcmp(command[0], "ls", strlen(command[0])) && strlen(command[0])==2 ){
-            interrupt(0x21,0, "Ls dipanggil hahaha\n\r",0,0);
+            interrupt(0x21,0, "Ls dipanggil hahaha\r\n",0,0);
             ls((unsigned char)parentIdx);
         } else if(strcmp(command[0],"cat",strlen(command[0])) && strlen(command[0])==3 ){
-            interrupt(0x21,0, "Cat dipanggil hahaha\n\r",0,0);
+            interrupt(0x21,0, "Cat dipanggil hahaha\r\n",0,0);
+            cat(command[1],parentIdx);
         } else{
             interrupt(0x21,0, command[0],0,0);
-            interrupt(0x21,0," not found\n\r",0,0);
+            interrupt(0x21,0," not found\r\n",0,0);
         }
         clear(input,128);
     }
