@@ -168,7 +168,7 @@ void cat(char * filenames, char parentIdx)
         return;
     }
     interrupt(0x21, 0, filenames , 0, 0);
-    interrupt(0x21, 0, "bukan file\r\n", 0, 0);
+    interrupt(0x21, 0, " bukan file\r\n", 0, 0);
 }
 
 void shell(){
@@ -185,7 +185,7 @@ void shell(){
     while(1){
         cwd(parentIdx,dir);
         interrupt(0x21,1,input,0,0);
-        strsplit(input,command);
+        strsplit(input,' ',command);
         if(strcmp(command[0], "cd", strlen(command[0])) && strlen(command[0])==2){
             interrupt(0x21,0, "Cd dipanggil hahaha\r\n",0,0);
             cd(&parentIdx,command[1]);

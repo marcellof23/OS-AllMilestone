@@ -61,7 +61,7 @@ void clear(char *buffer, int length){
 	}
 }
 
-void strsplit(char *input,char ptr[][64])
+void strsplit(char *input,char param,char ptr[][64])
 {
     char command[8][64];
     int i=0;
@@ -82,7 +82,7 @@ void strsplit(char *input,char ptr[][64])
         if(input[i]=='\0'){
             commandcount++;
             break;
-        } else if(input[i]==' '){
+        } else if(input[i]==param){
             commandcount++;
             z=-1;
             j++;
