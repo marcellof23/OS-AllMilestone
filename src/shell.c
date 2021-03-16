@@ -72,7 +72,7 @@ int getPathIdx(unsigned char parentIdx, char *filename) { //Get Index file di fi
         while(i < 1024) {
             strslice(file, currFile, i+2, i+16);
             if(strcmp(filename, currFile, 14) && parentIdx == file[i]) {
-                if((unsigned char)file[i+2] == 0xFF) {
+                if((unsigned char)file[i+1] == 0xFF) {
                     return file[i];
                 } else {
                     return -1;
@@ -283,16 +283,20 @@ void shell(){
         commandCount = strsplit(input,' ',command);
         if(*(command[commandCount-1]+strlen(command[commandCount-1])-1) == 0x09) {
 
+            //catet posisi terakhir input
             count = 0;
             for(i = 0; i < commandCount; i++) {
                 count += strlen(command[i]);
             }
             count += commandCount - 2;
+
+            //catet posisi terakhir command
             j = strlen(command[commandCount-1])-1;
 
             *(command[commandCount-1]+strlen(command[commandCount-1])-1) = 0x0;
             autoComplete(command[commandCount-1], parentIdx);
             
+            //update input
             i = count;
             while(j < strlen(command[commandCount-1])) {
                 *(input+i) = *(command[commandCount-1]+j);
