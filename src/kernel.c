@@ -86,26 +86,41 @@ void readString(char *string){
   int high, low;
   i = 0;
   input = interrupt(0x16, 0x0000, 0, 0, 0);
-  low = input & 0xFF;
+  low = input & 0x00FF;
   high = input >> 8;
-  while(low != 0x0d && high != 0x48 && high != 0x50) {
-    if(low != 0x8){
+  while(low != 0x00 && low != 0x0d && high != 0x48 && high != 0x50) {
+    if(low != 0x08){
       *(string+i) = low;
       i++;
 
       interrupt(0x10, 0x0e00 + low, 0, 0, 0);
-    } else if (i > 0){
+    } else if(i > 0){
       interrupt(0x10, 0x0e00 + low, 0, 0, 0);
-      interrupt(0x10, 0x0e00 + ' ', 0, 0, 0);
+      interrupt(0x10, 0x0e00 + 0x0, 0, 0, 0);
       interrupt(0x10, 0x0e00 + low, 0, 0, 0);
       *(string+i-1) = 0x0;
       i--;
       
     }
     input = interrupt(0x16, 0x0000, 0, 0, 0);
-    low = input & 0xFF;
+    low = input & 0x00FF;
     high = input >> 8;
   }
+
+  if(low == 0x00) {
+    while(i > 0) {
+      interrupt(0x10, 0x0e00 + 0x08, 0, 0, 0);
+      interrupt(0x10, 0x0e00 + 0x0, 0, 0, 0);
+      interrupt(0x10, 0x0e00 + 0x08, 0, 0, 0);
+      *(string+i-1) = 0x0;
+      i--;
+    }
+    string[0] = 0x0;
+    string[1] = high;
+    printString("\n\r");
+    return;
+  }
+
   *(string+i) = 0x0;
 
   printString("\n");
