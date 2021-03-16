@@ -174,15 +174,25 @@ void cat(char * filenames, char dir)
 void autoComplete(char *filename, char parentIdx) {
     char files[512 * 2];
     char *temp;
-    int i;
+    char *currFilename;
+    int i, idxFilename, idxTemp;
     interrupt(0x21, 2, files, 0x101, 0);
     interrupt(0x21, 2, files + 512, 0x102, 0);
 
     i = 0;
     while(i < 1024) {
-        if(*(files+i) == parentIdx && strcmp(filename, *(files+i+2), strlen(filename))) {
-            strslice(*(files+i+2), temp, strlen(filename), 14);
+        strslice(files, currFilename, i+2, i+16);
+        if(files[i] == parentIdx && strcmp(filename, currFilename, strlen(filename))) {
+            strslice(files, temp, i+2+strlen(filename), i+16);
             interrupt(0x21, 0, temp, 0, 0);
+            idxFilename = strlen(filename);
+            idxTemp = 0;
+            while(*(temp+idxTemp) != 0x0) {
+                *(filename+idxFilename) = *(temp+idxTemp);
+                idxFilename++;
+                idxTemp++;
+            }
+            *(filename+idxFilename) = 0x0;
             break;
         }
         i += 16;
@@ -190,6 +200,7 @@ void autoComplete(char *filename, char parentIdx) {
 }
 
 void shell(){
+    char history[4][128];
     char command[128];
     unsigned char parentIdx = 0xFF;
     char dir[128];
