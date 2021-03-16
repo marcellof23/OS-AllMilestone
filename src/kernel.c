@@ -81,16 +81,17 @@ void printStringNoNewline(char *string){
 }
 
 void readString(char *string){
-  int input, i, test;
+  int input, i, j, idx, test;
+  char filename[14];
   i = 0;
   input = interrupt(0x16, 0x0000, 0, 0, 0);
   while(input != 0x0d) {
-    if(input !=0x8){
+    if(input != 0x8){
       interrupt(0x10, 0x0e00 + input, 0, 0, 0);
       *(string+i) = input;
       i++;
       input = interrupt(0x16, 0x0000, 0, 0, 0);
-    } else{
+    } else {
       interrupt(0x10, 0x0e00 + input, 0, 0, 0);
       interrupt(0x10, 0x0e00 + 0x0,0,0);
       interrupt(0x10, 0x0e00 + input,0,0,0);
@@ -101,6 +102,7 @@ void readString(char *string){
   }
   *(string+i) = 0x0;
 
+  printString("\n");
   printString("\r");
 }
 
@@ -120,28 +122,28 @@ void printLogo(int x, int y){
 }
 
 void printOSName(){
-  printString(" /$$$$$$$ /$$  \n\r");
-  printString("| $$__  $|__/ \n\r");
-  printString("| $$  \\ $$/$$ /$$$$$$ \n\r");
-  printString("| $$$$$$$| $$/$$__  $$   \n\r");
-  printString("| $$____/| $| $$$$$$$$ \n\r");
-  printString("| $$     | $| $$_____/ \n\r");
-  printString("| $$     | $|  $$$$$$$ \n\r");
-  printString("|/$$     |/$$\\_______/   \n\r");
-  printString("| $$$    /$$$    \n\r");
-  printString("| $$$$  /$$$$ /$$$$$$  /$$$$$$ /$$$$$$$\n\r");
-  printString("| $$ $$/$$ $$/$$__  $$/$$__  $| $$__  $$\n\r");
-  printString("| $$  $$$| $| $$  \\ $| $$  \\ $| $$  \\ $$\n\r");
-  printString("| $$\\  $ | $| $$  | $| $$  | $| $$  | $$\n\r");
-  printString("| $$ \\/  | $|  $$$$$$|  $$$$$$| $$  | $$\n\r");
-  printString("|_/$$$$$$|_/$$$$$$__/ \\______/|__/  |__/\n\r");
-  printString(" /$$__  $$/$$__  $$ \n\r");
-  printString("| $$  \\ $| $$  \\__/ \n\r");
-  printString("| $$  | $|  $$$$$$    \n\r");
-  printString("| $$  | $$\\____  $$  \n\r");
-  printString("| $$  | $$/$$  \\ $$  \n\r");
-  printString("|  $$$$$$|  $$$$$$/  \n\r");
-  printString(" \\______/ \\______/  \n\r");
+  printString(" /$$$$$$$ /$$  \r\n");
+  printString("| $$__  $|__/ \r\n");
+  printString("| $$  \\ $$/$$ /$$$$$$ \r\n");
+  printString("| $$$$$$$| $$/$$__  $$   \r\n");
+  printString("| $$____/| $| $$$$$$$$ \r\n");
+  printString("| $$     | $| $$_____/ \r\n");
+  printString("| $$     | $|  $$$$$$$ \r\n");
+  printString("|/$$     |/$$\\_______/   \r\n");
+  printString("| $$$    /$$$    \r\n");
+  printString("| $$$$  /$$$$ /$$$$$$  /$$$$$$ /$$$$$$$\r\n");
+  printString("| $$ $$/$$ $$/$$__  $$/$$__  $| $$__  $$\r\n");
+  printString("| $$  $$$| $| $$  \\ $| $$  \\ $| $$  \\ $$\r\n");
+  printString("| $$\\  $ | $| $$  | $| $$  | $| $$  | $$\r\n");
+  printString("| $$ \\/  | $|  $$$$$$|  $$$$$$| $$  | $$\r\n");
+  printString("|_/$$$$$$|_/$$$$$$__/ \\______/|__/  |__/\r\n");
+  printString(" /$$__  $$/$$__  $$ \r\n");
+  printString("| $$  \\ $| $$  \\__/ \r\n");
+  printString("| $$  | $|  $$$$$$    \r\n");
+  printString("| $$  | $$\\____  $$  \r\n");
+  printString("| $$  | $$/$$  \\ $$  \r\n");
+  printString("|  $$$$$$|  $$$$$$/  \r\n");
+  printString(" \\______/ \\______/  \r\n");
 }
 
 void readSector(char *buffer,int sector) {

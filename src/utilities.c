@@ -45,7 +45,7 @@ void strslice(char *input,char *res,int start,int end){
 int strlen(char *string){
   int count = 0;
   while(1){
-    if(string[count]==0x0){
+    if(string[count]=='\0'){
       break;
     }
     count++;
@@ -59,4 +59,44 @@ void clear(char *buffer, int length){
 	{
 		buffer[i] = 0x00;
 	}
+}
+
+void strsplit(char *input,char param,char ptr[][64])
+{
+    char command[8][64];
+    int i=0;
+    int j=0;
+    int z=0;
+    int commandcount=0;
+    
+    for(i=0;i<8;i++){
+        for(j=0;j<64;j++){
+            command[i][j] = '\0';
+        }
+    }
+
+    i=0;
+    j=0;
+    
+    while(1){
+        if(input[i]=='\0'){
+            commandcount++;
+            break;
+        } else if(input[i]==param){
+            commandcount++;
+            z=-1;
+            j++;
+        } else{
+            command[j][z] = input[i];
+        }
+        i++;
+        z++;
+    }
+    for(i=0;i<commandcount;i++){
+        j=0;
+        while(j<64){
+            ptr[i][j] = command[i][j];
+            j++;
+        }
+    }
 }
