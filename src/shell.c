@@ -1,11 +1,11 @@
 #include "shell.h"
 #include "utilities.h"
 
-void cwd(char pathIdx, char *dir) {
+void cwd(int pathIdx, char *dir) {
     int depth = 0;
     char pathOrder[64];
     char *absolutePath;
-    char currDir = pathIdx;
+    int currDir = pathIdx;
     char file[512 * 2];
     int i, z,idx;
     int dirindex=0;
@@ -72,7 +72,7 @@ int getPathIdx(unsigned char parentIdx, char *filename) { //Get Index file di fi
         while(i < 1024) {
             strslice(file, currFile, i+2, i+16);
             if(strcmp(filename, currFile, 14) && parentIdx == file[i]) {
-                if((unsigned char)file[i+2] == 0xFF) {
+                if((unsigned char)file[i+1] == 0xFF) {
                     return file[i];
                 } else {
                     return -1;
