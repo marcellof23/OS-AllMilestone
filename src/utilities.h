@@ -13,6 +13,6 @@ int strlen(char *string);
 
 void clear(char *buffer, int length); //Fungsi untuk mengisi buffer dengan 0
 
-void parseCommand(char *input , int count,char **ptr);
+void strsplit(char *input ,char ptr[][64]);
 
 #endif

@@ -172,24 +172,32 @@ void cat(char * filenames, char dir)
 }
 
 void shell(){
-    char command[128];
+    int i,j;
+    char input[128];
+    char command[8][64];
     unsigned char parentIdx = 0xFF;
     char dir[128];
+    // for(i=0;i<8;i++){
+    //    for(j=0;j<64;j++){
+    //        command[i][j] = '\0';
+    //    }
+    // }
     while(1){
         cwd(parentIdx,dir);
-        interrupt(0x21,1,command,0,0);
-        interrupt(0x21,0,dir,0,0);
-        interrupt(0x21,0,command,0,0);
+        interrupt(0x21,1,input,0,0);
         interrupt(0x21,0,"\n\r",0,0);
-        if(strcmp(command, "cd", strlen(command)) && strlen(command)==2){
+        strsplit(input,command);
+        if(strcmp(command[0], "cd", strlen(command[0])) && strlen(command[0])==2){
             interrupt(0x21,0, "Cd dipanggil hahaha\n\r",0,0);
-        } else if(strcmp(command, "ls", strlen(command)) && strlen(command)==2 ){
+        } else if(strcmp(command[0], "ls", strlen(command[0])) && strlen(command[0])==2 ){
             interrupt(0x21,0, "Ls dipanggil hahaha\n\r",0,0);
             ls((unsigned char)parentIdx);
-        } else if(strcmp(command,"cat",strlen(command)) && strlen(command)==3 ){
+        } else if(strcmp(command[0],"cat",strlen(command[0])) && strlen(command[0])==3 ){
             interrupt(0x21,0, "Cat dipanggil hahaha\n\r",0,0);
         } else{
-            interrupt(0x21,0, "Command tidak ketemu pala bapakkaooo\n\r");
+            interrupt(0x21,0, "Command tidak ketemu pala bapakkaooo\n\r",0,0);
+            interrupt(0x21,0, command[0],0,0);
+            interrupt(0x21,0,"\n\r",0,0);
         }
     }
 }

@@ -61,28 +61,16 @@ void clear(char *buffer, int length){
 	}
 }
 
-void parseCommand(char *input , int count,char **ptr)
+void strsplit(char *input,char ptr[][64])
 {
     char command[8][64];
     int i=0;
     int j=0;
     int z=0;
     int commandcount=0;
-
-    printf("%s\n",input);
     
-    for(i=0;i<3;i++)
-    {
-        j=0;
-        printf("\n");
-        while(j<64 && ptr[i][j]!=0){
-            printf("%c",ptr[i][j]);
-            j++;
-        }
-    }
-    
-    for(int i=0;i<8;i++){
-        for(int j=0;j<64;j++){
+    for(i=0;i<8;i++){
+        for(j=0;j<64;j++){
             command[i][j] = '\0';
         }
     }
@@ -104,18 +92,11 @@ void parseCommand(char *input , int count,char **ptr)
         i++;
         z++;
     }
-    
-    for(i=0;i<count;i++)
-    {
+    for(i=0;i<commandcount;i++){
         j=0;
-        while(1){
-            if(ptr[i][j]=='\0'){
-                break;
-            }
+        while(j<64 && command[i][j]!='\0'){
+            ptr[i][j] = command[i][j];
             j++;
         }
-    }
-    for(i=0;i<2;i++){
-        ptr[i] = command[i];
     }
 }
