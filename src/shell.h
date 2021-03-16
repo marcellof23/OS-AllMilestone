@@ -1,7 +1,7 @@
 #ifndef SHELL_H
 #define SHELL_H
 
-void cwd(char pathIdx,char *dir);
+void cwd(int pathIdx,char *dir);
 
 void cd(unsigned char *currParentIdx, char *dirPath);
 
