@@ -215,6 +215,9 @@ void shell(){
     while(1){
         cwd(parentIdx,dir);
         interrupt(0x21,1,input,0,0);
+        if(input[0] == 0x00 && input[1] != 0x00) {
+            interrupt(0x21, 0, "ARROW GAN", 0, 0);
+        }
         strsplit(input,' ',command);
         if(strcmp(command[0], "cd", strlen(command[0])) && strlen(command[0])==2){
             interrupt(0x21,0, "Cd dipanggil hahaha\r\n",0,0);

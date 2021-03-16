@@ -83,22 +83,28 @@ void printStringNoNewline(char *string){
 void readString(char *string){
   int input, i, j, idx, test;
   char filename[14];
+  int high, low;
   i = 0;
   input = interrupt(0x16, 0x0000, 0, 0, 0);
-  while(input != 0x0d) {
-    if(input != 0x8){
-      interrupt(0x10, 0x0e00 + input, 0, 0, 0);
-      *(string+i) = input;
+  low = input & 0xFF;
+  high = input >> 8;
+  while(low != 0x0d && high != 0x48 && high != 0x50) {
+    if(low != 0x8){
+      *(string+i) = low;
       i++;
-      input = interrupt(0x16, 0x0000, 0, 0, 0);
-    } else {
-      interrupt(0x10, 0x0e00 + input, 0, 0, 0);
-      interrupt(0x10, 0x0e00 + 0x0,0,0);
-      interrupt(0x10, 0x0e00 + input,0,0,0);
+
+      interrupt(0x10, 0x0e00 + low, 0, 0, 0);
+    } else if (i > 0){
+      interrupt(0x10, 0x0e00 + low, 0, 0, 0);
+      interrupt(0x10, 0x0e00 + ' ', 0, 0, 0);
+      interrupt(0x10, 0x0e00 + low, 0, 0, 0);
       *(string+i-1) = 0x0;
       i--;
-      input = interrupt(0x16, 0x0000, 0, 0, 0);
+      
     }
+    input = interrupt(0x16, 0x0000, 0, 0, 0);
+    low = input & 0xFF;
+    high = input >> 8;
   }
   *(string+i) = 0x0;
 
