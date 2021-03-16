@@ -13,6 +13,6 @@ int strlen(char *string);
 
 void clear(char *buffer, int length); //Fungsi untuk mengisi buffer dengan 0
 
-void strsplit(char *input ,char param,char ptr[][64]);
+int strsplit(char *input ,char param,char ptr[][64]);
 
 #endif
