@@ -117,7 +117,18 @@ void readString(char *string){
     low = input & 0x00FF;
   }
 
-  if(low == 0x09) {
+  if(low == 0x00) {
+    while(i > 0) {
+      interrupt(0x10, 0x0e00 + 0x08, 0, 0, 0);
+      interrupt(0x10, 0x0e00 + 0x0, 0, 0, 0);
+      interrupt(0x10, 0x0e00 + 0x08, 0, 0, 0);
+      *(string+i-1) = 0x0;
+      i--;
+    }
+    string[0] = 0x00;
+    string[1] = high;
+    return;
+  } else if(low == 0x09) {
     *(string+i) = 0x09;
     i++;
     *(string+i) = 0x0;
