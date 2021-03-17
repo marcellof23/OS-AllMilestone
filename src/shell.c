@@ -471,7 +471,7 @@ void mkdir( char *filenames,unsigned char parentIndex)
 
 
 void shell(){
-    int i, j, commandCount, historyCount = 3, historyIdx, count, idx;
+    int i, j, commandCount, historyCount = -1, historyIdx, count, idx;
     int tabPressed = 0, arrowPressed = 0;
     char input[128];
     char temp[128];
@@ -530,20 +530,20 @@ void shell(){
             *(input+2+strlen(temp)) = 0x0;
 
             //simpen command ke history
-            if(historyCount >= 0) {
+            if(historyCount < 3) {
+                historyCount++;
                 strslice(temp, history[historyCount], 0, strlen(temp));
                 *(history[historyCount] + strlen(temp)) = 0x0;
-                historyCount--;
             } else {
-                historyIdx = 3;
-                while(historyIdx > 0) {
-                    strslice(history[historyIdx-1], history[historyIdx], 0, strlen(history[historyIdx-1]));
-                    *(history[historyIdx] + strlen(history[historyIdx-1])) = 0x0;
-                    historyIdx--;
+                historyIdx = 0;
+                while(historyIdx < 3) {
+                    strslice(history[historyIdx+1], history[historyIdx], 0, strlen(history[historyIdx+1]));
+                    *(history[historyIdx] + strlen(history[historyIdx+1])) = 0x0;
+                    historyIdx++;
                 }
-                strslice(temp, history[0], 0, strlen(temp));
-                *(history[0] + strlen(temp)) = 0x0;
-                historyCount = 0;
+                strslice(temp, history[3], 0, strlen(temp));
+                *(history[3] + strlen(temp)) = 0x0;
+                historyCount = 3;
             }
 
             tabPressed = 1;
@@ -576,7 +576,7 @@ void shell(){
                 }
             } else if(strcmp(command[0],"history",strlen(command[0])) && strlen(command[0])==7) {
                 interrupt(0x21,0,"history dipanggil hahaha\n\r",0,0);
-                for(i = 0; i < 4; i++) {
+                for(i = 3; i >= 0; i--) {
                     if(*(history[i]) == 0x0) {
                         continue;
                     } else {
@@ -590,20 +590,20 @@ void shell(){
             }
 
             //simpen command ke history
-            if(historyCount >= 0) {
+            if(historyCount < 3) {
+                historyCount++;
                 strslice(input, history[historyCount], 0, strlen(input));
                 *(history[historyCount] + strlen(input)) = 0x0;
-                historyCount--;
             } else {
-                historyIdx = 3;
-                while(historyIdx > 0) {
-                    strslice(history[historyIdx-1], history[historyIdx], 0, strlen(history[historyIdx-1]));
-                    *(history[historyIdx] + strlen(history[historyIdx-1])) = 0x0;
-                    historyIdx--;
+                historyIdx = 0;
+                while(historyIdx < 3) {
+                    strslice(history[historyIdx+1], history[historyIdx], 0, strlen(history[historyIdx+1]));
+                    *(history[historyIdx] + strlen(history[historyIdx+1])) = 0x0;
+                    historyIdx++;
                 }
-                strslice(input, history[0], 0, strlen(input));
-                *(history[0] + strlen(input)) = 0x0;
-                historyCount = 0;
+                strslice(input, history[3], 0, strlen(input));
+                *(history[3] + strlen(input)) = 0x0;
+                historyCount = 3;
             }
             
             tabPressed = 0;
