@@ -85,7 +85,7 @@ int getPathIdx(int parentIdx, char *filename) { //Get Index file di files
     }
 }
 
-int getFilePathIdx(unsigned char parentIdx, char *filepath){ // -1 if not found else files idx
+int getFilePathIdx(unsigned char parentIdx, char *filepath){
     char file[1024];
     char currFile[14];
     char pathchunks[32][64];
@@ -108,12 +108,12 @@ int getFilePathIdx(unsigned char parentIdx, char *filepath){ // -1 if not found 
                     }
                 }
             }
-            return -1;
+            return -2;
         } else{ //Folder
             fileidxlooper = getPathIdx(fileidxlooper, pathchunks[i]);
         }
     }
-    return parentIdx;
+    return 999; // Shouldn't be possible to reach 999, only for debugging purposes
 }
 
 int cd(int currParentIdx, char *dirPath) {
@@ -155,45 +155,128 @@ int cd(int currParentIdx, char *dirPath) {
 }
 
 //usage : ln -s original_file linked_file
-// status code : 0 (success), -1 (original_file error) , -2 (linked_file error)
+// status code : 0 (success), -1 (original_file error) , -2 (linked_file error), -3 (sector full)
+// soft calculation files index = files[i+1] - 0x1F (if files[i+1]>=x20)
 int ln(char *filepath, char *filelink,int soft,unsigned char parentIndex){
     char files[1024];
     char sectors[512];
-    char pathsfile[16][64];
-    char pathslink[16][64];
-    int countfile = strsplit(filepath,'/',pathsfile);
-    int countlink = strsplit(filelink,'/',pathslink);
+    int i,j;
     int idx;
-    char output[100];
+    // char output[100];
+    char filepathmatrix[16][64];
+    char filelinkmatrix[16][64];
+    int charcount,linkcount;
+    char res[100];
+    char filename[14];
+
+    interrupt(0x21,2,files,0x101,0,0);
+    interrupt(0x21,2,files+512,0x102,0,0);
 
     if(soft){
-        interrupt(0x21,0, "ln soft dipanggil hahaha\r\n",0,0);
         idx = getFilePathIdx(parentIndex,filepath);
-        itoa(idx,10,output);
-        interrupt(0x21,0,output,0,0);
-        interrupt(0x21,0,"\r\n",0,0);
-        interrupt(0x21,0,filepath,0,0);
-        interrupt(0x21,0,"\r\n",0,0);
-        if(getFilePathIdx(parentIndex, filepath)==-1){
-            interrupt(0x21,0, "original file not found\r\n",0,0);
+        if((getFilePathIdx(parentIndex, filepath)==-1 || getFilePathIdx(parentIndex,filepath)==-2)){
+            interrupt(0x21,0, "Original file not found\r\n",0,0);
             return -1;
         }
-        if(getFilePathIdx(parentIndex, filelink)==-1){
-            interrupt(0x21,0, "destination folder not found\r\n",0,0);
+        if(getFilePathIdx(parentIndex, filelink)>=0){
+            interrupt(0x21,0, "File already exists!\r\n",0,0);
             return -2;
         }
+        if(getFilePathIdx(parentIndex,filelink)!=-2){
+            interrupt(0x21,0,"Destination folder doesn't exist\r\n");
+            return -2;
+        }
+        // IF everything is OK
+
+        linkcount = strsplit(filelink, '/', filelinkmatrix);
+        charcount =0;
+        for(i=0;i<linkcount;i++){
+            j=0;
+            while(j<64 && filelinkmatrix[i][j]){
+                charcount++;
+                j++;
+            }
+        }
+        for(i=charcount;i>=0;i--){
+            if(filelink[i]=='/'){
+                break;
+            }
+        }
+
+        if(i==-1 || linkcount==1){
+            strslice(filelink,filename,0,16);
+        } else{
+            strslice(filelink,res,0,i);
+            strslice(filelink,filename,i+1,16);
+        }
+
+        for(i=0;i<1024;i+=16){
+            if(isempty(files+i,16)){
+                files[i] = linkcount == 1 ? parentIndex : getPathIdx(parentIndex,res);
+                files[i+1] = 0x20 + idx;
+                for(j=2;j<16;j++){
+                    files[i+j] = filename[j-2];
+                }
+                interrupt(0x21,3,files,0x101,0,0);
+                interrupt(0x21,3,files+512,0x102,0,0);
+                return 0;
+            }
+        }
+        interrupt(0x21,0,"cannot create file as files sector is already full\r\n",0,0);
+        return -3;
     } else{
-        interrupt(0x21,0, "ln hard dipanggil hahaha\r\n",0,0);
-        // idx = getPathIdx(parentIndex,filepath);
-        // interrupt(0x21,0, )
-        if(getFilePathIdx(parentIndex, filepath)==-1){
-            interrupt(0x21,0, "original file not found\r\n",0,0);
+        idx = getFilePathIdx(parentIndex,filepath);
+    
+        if((getFilePathIdx(parentIndex, filepath)==-1 || getFilePathIdx(parentIndex,filepath)==-2)){
+            interrupt(0x21,0, "Original file not found\r\n",0,0);
             return -1;
         }
-        if(getFilePathIdx(parentIndex, filelink)==-1){
-            interrupt(0x21,0, "destination folder not found\r\n",0,0);
+        if(getFilePathIdx(parentIndex, filelink)>=0){
+            interrupt(0x21,0, "File already exists!\r\n",0,0);
             return -2;
         }
+        if(getFilePathIdx(parentIndex,filelink)!=-2){
+            interrupt(0x21,0,"Destination folder doesn't exist\r\n");
+            return -2;
+        }
+        // IF everything is OK
+
+        linkcount = strsplit(filelink, '/', filelinkmatrix);
+        charcount =0;
+        for(i=0;i<linkcount;i++){
+            j=0;
+            while(j<64 && filelinkmatrix[i][j]){
+                charcount++;
+                j++;
+            }
+        }
+        for(i=charcount;i>=0;i--){
+            if(filelink[i]=='/'){
+                break;
+            }
+        }
+
+        if(i==-1 || linkcount==1){
+            strslice(filelink,filename,0,16);
+        } else{
+            strslice(filelink,res,0,i);
+            strslice(filelink,filename,i+1,16);
+        }
+
+        for(i=0;i<1024;i+=16){
+            if(isempty(files+i,16)){
+                files[i] = linkcount == 1 ? parentIndex : getPathIdx(parentIndex,res);
+                files[i+1] = files[idx*16+1];
+                for(j=2;j<16;j++){
+                    files[i+j] = filename[j-2];
+                }
+                interrupt(0x21,3,files,0x101,0,0);
+                interrupt(0x21,3,files+512,0x102,0,0);
+                return 0;
+            }
+        }
+        interrupt(0x21,0,"cannot create file as files sector is already full\r\n",0,0);
+        return -3;
     }
     return 0;
 }
@@ -237,25 +320,38 @@ void cat(char * filenames, unsigned char parentIdx)
     char buff[512 * 16];
     int idx = strlen(filenames);
     int pathIdx;
-    char * output;
-    char * currfile;
+    char output[100];
+    char filematrix[64][64];
+    char countsplit;
+    char linkedname[17];
+    // char * currfile;
     interrupt(0x21, 2, files, 0x101, 0);
     interrupt(0x21, 2, files+512, 0x102, 0);
     while(idx < 14) {
         *(filenames + idx) = 0x0;
         idx++;
     }
+    clear(output,100);
     pathIdx = getFilePathIdx(parentIdx, filenames);
-    itoa(pathIdx, 10, output);
-    // interrupt(0x21, 0, output, 0, 0);
-    // interrupt(0x21, 0, "\r\n", 0, 0);
-    // interrupt(0x21, 0, filenames, 0, 0);
-    if(pathIdx>=0 && *output != '\0')
-    {
-        interrupt(0x21, 4 + 0x100*files[0x10*pathIdx], buff, filenames, 0);
-        interrupt(0x21, 0, buff , 0, 0);
-        interrupt(0x21, 0, "\r\n" , 0, 0);
-        return;
+    countsplit = strsplit(filenames, '/', filematrix);
+
+    if(files[0x10*pathIdx+1]<0x20){
+        if(pathIdx>=0)
+        {
+            interrupt(0x21, 4 + 0x100*files[0x10*pathIdx], buff, filematrix[countsplit-1], 0);
+            interrupt(0x21, 0, buff , 0, 0);
+            interrupt(0x21, 0, "\r\n" , 0, 0);
+            return;
+        }
+    } else{
+        if(pathIdx>=0)
+        {
+            strslice(files+0x10*(files[0x10*pathIdx+1]-0x20),linkedname,2,16);
+            interrupt(0x21, 4 + 0x100*(files[0x10*(files[0x10*pathIdx+1]-0x20)]), buff, linkedname, 0);
+            interrupt(0x21, 0, buff , 0, 0);
+            interrupt(0x21,0,"\r\n", 0,0);
+            return;
+        }       
     }
     interrupt(0x21, 0, "file tidak ditemukan\r\n", 0, 0);
 }
@@ -335,16 +431,21 @@ void mkdir( char *filenames,unsigned char parentIndex)
 
 
 void shell(){
-    int i, j, commandCount, count, idx;
+    int i, j, commandCount, historyCount = -1, historyIdx, count, idx;
     int tabPressed = 0, arrowPressed = 0;
     char input[128];
     char temp[128];
+    char history[4][128];
     char command[8][64];
     int parentIdx = 0xFF;
     int targetDir;
     char dir[128];
     int status;
         
+    for(i = 0; i < 4; i++) {
+        clear(history[i], 128);
+    }
+
     while(1){
         if(!tabPressed && !arrowPressed) {
             cwd(parentIdx,dir);
@@ -389,12 +490,8 @@ void shell(){
             *(input+2+strlen(temp)) = 0x0;
 
             tabPressed = 1;
-        } else if((input[0] == 0x00 && input[1] != 0x00)) {
-            interrupt(0x21, 0, "arrow keteken", 0, 0);
-            arrowPressed = 1;
         } else {
             if(strcmp(command[0], "cd", strlen(command[0])) && strlen(command[0])==2){
-                interrupt(0x21,0, "Cd dipanggil hahaha\r\n",0,0);
                 targetDir = cd(parentIdx,command[1]);
                 if(targetDir != -1) {
                     parentIdx = targetDir;
@@ -402,11 +499,8 @@ void shell(){
                     interrupt(0x21,0, "No such directory\r\n",0,0);
                 }
             } else if(strcmp(command[0], "ls", strlen(command[0])) && strlen(command[0])==2 ){
-                interrupt(0x21,0, "Ls dipanggil hahaha\r\n",0,0);
                 ls((unsigned char)parentIdx);
             } else if(strcmp(command[0],"cat",strlen(command[0])) && strlen(command[0])==3 ){
-                interrupt(0x21,0, "Cat dipanggil hahaha\r\n",0,0);
-                // interrupt(0x21,0, command[1],0,0);
                 cat(command[1],parentIdx);
             } else if(strcmp(command[0],"mkdir",strlen(command[0])) && strlen(command[0])==5){
                 mkdir(command[1],parentIdx);
@@ -416,10 +510,37 @@ void shell(){
                 } else{
                     status = ln(command[1],command[2],0,parentIdx);
                 }
+            } else if(strcmp(command[0],"history",strlen(command[0])) && strlen(command[0])==7) {
+                for(i = 3; i >= 0; i--) {
+                    if(*(history[i]) == 0x0) {
+                        continue;
+                    } else {
+                        interrupt(0x21, 0, history[i], 0, 0);
+                        interrupt(0x21, 0, "\n\r", 0, 0);
+                    }
+                }
             }else{
                 interrupt(0x21,0, command[0],0,0);
                 interrupt(0x21,0," not found\r\n",0,0);
             }
+
+            //simpen command ke history
+            if(historyCount < 3) {
+                historyCount++;
+                strslice(input, history[historyCount], 0, strlen(input));
+                *(history[historyCount] + strlen(input)) = 0x0;
+            } else {
+                historyIdx = 0;
+                while(historyIdx < 3) {
+                    strslice(history[historyIdx+1], history[historyIdx], 0, strlen(history[historyIdx+1]));
+                    *(history[historyIdx] + strlen(history[historyIdx+1])) = 0x0;
+                    historyIdx++;
+                }
+                strslice(input, history[3], 0, strlen(input));
+                *(history[3] + strlen(input)) = 0x0;
+                historyCount = 3;
+            }
+            
             tabPressed = 0;
             arrowPressed = 0;
         }

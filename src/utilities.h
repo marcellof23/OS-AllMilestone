@@ -17,4 +17,6 @@ int strsplit(char *input ,char param,char ptr[][64]);
 
 void itoa(int num, int basis, char * output);
 
+int isempty(char *buffer,int length);
+
 #endif

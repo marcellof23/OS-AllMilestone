@@ -96,10 +96,17 @@ void readString(char *string){
     }
   }
 
+<<<<<<< HEAD
   
   low = input & 0x00FF;
   high = (input & 0xFF00) >> 8;
   while(low != 0x00 && low != 0x0d && low != 0x09 && high != 0x48 && high != 0x50) {
+=======
+  high = input >> 8;
+  low = input & 0x00FF; 
+  
+  while(low != 0x0d && low != 0x09 && high != 0x48 && high != 0x50) {
+>>>>>>> 58298cdfb4738b7ef6ddf0ea3bc9d8f6b127986a
     if(low != 0x08){
       *(string+i) = low;
       i++;
@@ -113,22 +120,11 @@ void readString(char *string){
       i--;
     }
     input = interrupt(0x16, 0x0000, 0, 0, 0);
+    high = input >> 8;
     low = input & 0x00FF;
-    high = (input & 0xFF00) >> 8;
   }
 
-  if(low == 0x00) {
-    while(i > 0) {
-      interrupt(0x10, 0x0e00 + 0x08, 0, 0, 0);
-      interrupt(0x10, 0x0e00 + 0x0, 0, 0, 0);
-      interrupt(0x10, 0x0e00 + 0x08, 0, 0, 0);
-      *(string+i-1) = 0x0;
-      i--;
-    }
-    string[0] = 0x00;
-    string[1] = high;
-    return;
-  } else if(low == 0x09) {
+  if(low == 0x09) {
     *(string+i) = 0x09;
     i++;
     *(string+i) = 0x0;
@@ -188,7 +184,7 @@ void writeSector(char *buffer,int sector) {
   interrupt(0x13, 0x301, buffer, div(sector,36)*0x100 + mod(sector,18) + 1, mod(div(sector,18),2)*0x100);
 }
 
-void readFile(char *buffer, char *path, int *result, char parentIndex)
+void readFile(char *buffer, char *path, int *result, char parentIndex) //      readFile(BX, CX, DX, AH);
 {
   char files[1024];
   char sectorsFile[512];
