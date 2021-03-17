@@ -47,8 +47,6 @@ void cwd(int pathIdx, char *dir) {
     }
     interrupt(0x21, 0, "$ ", 0, 0);
     *(dir+dirindex) = '$';
-    *(dir+dirindex+1) = ' ';
-    *(dir+dirindex+2) = 0x0;
 }
 
 int getPathIdx(int parentIdx, char *filename) { //Get Index file di files
@@ -156,7 +154,6 @@ int cd(int currParentIdx, char *dirPath) {
 
 //usage : ln -s original_file linked_file
 // status code : 0 (success), -1 (original_file error) , -2 (linked_file error), -3 (sector full)
-// soft calculation files index = files[i+1] - 0x1F (if files[i+1]>=x20)
 int ln(char *filepath, char *filelink,int soft,unsigned char parentIndex){
     char files[1024];
     char sectors[512];
@@ -167,6 +164,7 @@ int ln(char *filepath, char *filelink,int soft,unsigned char parentIndex){
     char filelinkmatrix[16][64];
     int charcount,linkcount;
     char res[100];
+    char parent;
     char filename[14];
     char test[20];
 
@@ -209,16 +207,18 @@ int ln(char *filepath, char *filelink,int soft,unsigned char parentIndex){
                 break;
             }
         }
-        interrupt(0x21,0,"Linkcount : ",0,0);
-        clear(output,100);
-        itoa(linkcount,10,output);
-        interrupt(0x21,0,output,0,0);
-        interrupt(0x21,0,"\r\n",0,0);
-        if(i==-1 || linkcount==1){
-            strslice(filelink,filename,0,16);
+        if(i==-1){
+            parent = 0xFF;
         } else{
             strslice(filelink,res,0,i);
             strslice(filelink,filename,i+1,16);
+            interrupt(0x21,0,res,0,0);
+            interrupt(0x21,0,"\r\n",0,0);
+            parent = getPathIdx(parentIndex,res);
+            clear(output,100);
+            itoa(parent,10,output);
+            interrupt(0x21,0,output,0,0);
+            interrupt(0x21,0,"\r\n",0,0);
         }
 
         for(i=0;i<1024;i+=16){
@@ -228,16 +228,12 @@ int ln(char *filepath, char *filelink,int soft,unsigned char parentIndex){
             interrupt(0x21,0,test,0,0);
             interrupt(0x21,0,"\r\n",0,0);
             if(isempty(files+i,16)){
-                files[i] = linkcount == 1 ? parentIndex : getPathIdx(parentIndex,res);
-                clear(output,100);
-                itoa(files[i],10,output);
-                interrupt(0x21,0,output,0,0);
-                interrupt(0x21,0,"\r\n",0,0);
-                files[i+1] = 0x20 + idx;
+                files[i] = parent;
+                files[i+1] = 0x1F+idx;
                 for(j=2;j<16;j++){
                     files[i+j] = filename[j-2];
                 }
-                interrupt(0x21,0,"Ln success\r\n",0,0);
+                interrupt(0x21,0,"Ln soft success\r\n",0,0);
                 interrupt(0x21,3,files,0x101,0,0);
                 interrupt(0x21,3,files+512,0x102,0,0);
                 return 0;
@@ -281,16 +277,18 @@ int ln(char *filepath, char *filelink,int soft,unsigned char parentIndex){
                 break;
             }
         }
-        interrupt(0x21,0,"Linkcount : ",0,0);
-        clear(output,100);
-        itoa(linkcount,10,output);
-        interrupt(0x21,0,output,0,0);
-        interrupt(0x21,0,"\r\n",0,0);
-        if(i==-1 || linkcount==1){
-            strslice(filelink,filename,0,16);
+        if(i==-1){
+            parent = 0xFF;
         } else{
             strslice(filelink,res,0,i);
             strslice(filelink,filename,i+1,16);
+            interrupt(0x21,0,res,0,0);
+            interrupt(0x21,0,"\r\n",0,0);
+            parent = getPathIdx(parentIndex,res);
+            clear(output,100);
+            itoa(parent,10,output);
+            interrupt(0x21,0,output,0,0);
+            interrupt(0x21,0,"\r\n",0,0);
         }
 
         for(i=0;i<1024;i+=16){
@@ -300,11 +298,7 @@ int ln(char *filepath, char *filelink,int soft,unsigned char parentIndex){
             interrupt(0x21,0,test,0,0);
             interrupt(0x21,0,"\r\n",0,0);
             if(isempty(files+i,16)){
-                files[i] = linkcount == 1 ? parentIndex : getPathIdx(parentIndex,res);
-                clear(output,100);
-                itoa(files[i],10,output);
-                interrupt(0x21,0,output,0,0);
-                interrupt(0x21,0,"\r\n",0,0);
+                files[i] = parent;
                 files[i+1] = files[idx*16+1];
                 for(j=2;j<16;j++){
                     files[i+j] = filename[j-2];
@@ -360,38 +354,25 @@ void cat(char * filenames, unsigned char parentIdx)
     char buff[512 * 16];
     int idx = strlen(filenames);
     int pathIdx;
-    char output[100];
-    char filematrix[64][64];
-    char countsplit;
-    char linkedname[17];
-    // char * currfile;
+    char * output;
+    char * currfile;
     interrupt(0x21, 2, files, 0x101, 0);
     interrupt(0x21, 2, files+512, 0x102, 0);
     while(idx < 14) {
         *(filenames + idx) = 0x0;
         idx++;
     }
-    clear(output,100);
     pathIdx = getFilePathIdx(parentIdx, filenames);
-    countsplit = strsplit(filenames, '/', filematrix);
-
-    if(files[0x10*pathIdx+1]<0x20){
-        if(pathIdx>=0)
-        {
-            interrupt(0x21, 4 + 0x100*files[0x10*pathIdx], buff, filematrix[countsplit-1], 0);
-            interrupt(0x21, 0, buff , 0, 0);
-            interrupt(0x21, 0, "\r\n" , 0, 0);
-            return;
-        }
-    } else{
-        if(pathIdx>=0)
-        {
-            strslice(files+0x10*(files[0x10*pathIdx+1]-0x20),linkedname,2,16);
-            interrupt(0x21, 4 + 0x100*(files[0x10*(files[0x10*pathIdx+1]-0x20)]), buff, linkedname, 0);
-            interrupt(0x21, 0, buff , 0, 0);
-            interrupt(0x21,0,"\r\n", 0,0);
-            return;
-        }       
+    itoa(pathIdx, 10, output);
+    // interrupt(0x21, 0, output, 0, 0);
+    // interrupt(0x21, 0, "\r\n", 0, 0);
+    // interrupt(0x21, 0, filenames, 0, 0);
+    if(pathIdx>=0 && *output != '\0')
+    {
+        interrupt(0x21, 4 + 0x100*files[0x10*pathIdx], buff, filenames, 0);
+        interrupt(0x21, 0, buff , 0, 0);
+        interrupt(0x21, 0, "\r\n" , 0, 0);
+        return;
     }
     interrupt(0x21, 0, "file tidak ditemukan\r\n", 0, 0);
 }
@@ -471,7 +452,7 @@ void mkdir( char *filenames,unsigned char parentIndex)
 
 
 void shell(){
-    int i, j, commandCount, historyCount = -1, historyIdx, count, idx;
+    int i, j, commandCount, historyCount = -1, historyIdx = -1, count, idx;
     int tabPressed = 0, arrowPressed = 0;
     char input[128];
     char temp[128];
@@ -528,27 +509,42 @@ void shell(){
             *(input+1) = 0xFF;
             strslice(temp, input+2, 0, strlen(temp));
             *(input+2+strlen(temp)) = 0x0;
-
-            //simpen command ke history
-            if(historyCount < 3) {
-                historyCount++;
-                strslice(temp, history[historyCount], 0, strlen(temp));
-                *(history[historyCount] + strlen(temp)) = 0x0;
-            } else {
-                historyIdx = 0;
-                while(historyIdx < 3) {
-                    strslice(history[historyIdx+1], history[historyIdx], 0, strlen(history[historyIdx+1]));
-                    *(history[historyIdx] + strlen(history[historyIdx+1])) = 0x0;
-                    historyIdx++;
-                }
-                strslice(temp, history[3], 0, strlen(temp));
-                *(history[3] + strlen(temp)) = 0x0;
-                historyCount = 3;
-            }
-
             tabPressed = 1;
         } else if((input[0] == 0x00 && input[1] != 0x00)) {
-            interrupt(0x21, 0, "arrow keteken", 0, 0);
+
+            // arrow down
+            if(input[1] == 0x50)
+            {
+                if(historyIdx > -1 )
+                {
+                    historyIdx = historyIdx - 1;
+                }
+            }
+            else if(input[1] == 0x48)
+            {
+                if(historyIdx < historyCount)
+                {
+                    historyIdx = historyIdx + 1;
+                }
+            }
+            else 
+            {
+                interrupt(0x21, 0, "command not found", 0, 0);
+            }
+            if(historyIdx != -1)
+            {
+                interrupt(0x21, 0, history[historyIdx * 128], 0, 0);
+                strslice(history[historyIdx], temp, 0, strlen(history[historyIdx]));
+                *(input) = 0xFF;
+                *(input+1) = 0xFF;
+                *(temp+strlen(history[historyIdx])) = 0x0;
+                strslice(temp, input + 2 ,0 , strlen(temp));
+                *(input+2+strlen(temp)) = 0x0;
+            }
+            else
+            {
+                clear(input,128);
+            }
             arrowPressed = 1;
         } else {
             if(strcmp(command[0], "cd", strlen(command[0])) && strlen(command[0])==2){
@@ -590,25 +586,39 @@ void shell(){
             }
 
             //simpen command ke history
+            // if(historyCount < 3) {
+            //     historyCount++;
+            //     strslice(input, history[historyCount], 0, strlen(input));
+            //     *(history[historyCount] + strlen(input)) = 0x0;
+            // } else {
+            //     historyIdx = 0;
+            //     while(historyIdx < 3) {
+            //         strslice(history[historyIdx+1], history[historyIdx], 0, strlen(history[historyIdx+1]));
+            //         *(history[historyIdx] + strlen(history[historyIdx+1])) = 0x0;
+            //         historyIdx++;
+            //     }
+            //     strslice(input, history[3], 0, strlen(input));
+            //     *(history[3] + strlen(input)) = 0x0;
+            //     historyCount = 3;
+            // }
+            // historyIdx=-1;
+            // tabPressed = 0;
+            // arrowPressed = 0;
+            for(i = 2 ;i>=0 ;i--)
+            {
+                strslice(history[i], history[i+1], 0, strlen(history[i]));
+                *(history[i+1]+strlen(history[i])) = 0x0;
+            }
             if(historyCount < 3) {
                 historyCount++;
-                strslice(input, history[historyCount], 0, strlen(input));
-                *(history[historyCount] + strlen(input)) = 0x0;
-            } else {
-                historyIdx = 0;
-                while(historyIdx < 3) {
-                    strslice(history[historyIdx+1], history[historyIdx], 0, strlen(history[historyIdx+1]));
-                    *(history[historyIdx] + strlen(history[historyIdx+1])) = 0x0;
-                    historyIdx++;
-                }
-                strslice(input, history[3], 0, strlen(input));
-                *(history[3] + strlen(input)) = 0x0;
-                historyCount = 3;
             }
-            
+            strslice(input, history[0], 0, strlen(input));
+            *(history[0]+strlen(input)) = 0x0;
+            historyIdx=-1;
             tabPressed = 0;
             arrowPressed = 0;
+            clear(input,128);
         }
-        // clear(input,128);
+        
     }
 }
