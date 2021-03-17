@@ -431,7 +431,7 @@ void mkdir( char *filenames,unsigned char parentIndex)
 
 
 void shell(){
-    int i, j, commandCount, historyCount = -1, historyIdx, count, idx;
+    int i, j, commandCount, historyCount = -1, historyIdx = -1, count, idx;
     int tabPressed = 0, arrowPressed = 0;
     char input[128];
     char temp[128];
@@ -488,7 +488,41 @@ void shell(){
             *(input+1) = 0xFF;
             strslice(temp, input+2, 0, strlen(temp));
             *(input+2+strlen(temp)) = 0x0;
-
+            tabPressed = 1;
+        } else if((input[0] == 0x00 && input[1] != 0x00)) {
+            if(input[1] == 0x50)
+            {
+                if(historyIdx > -1 )
+                {
+                    historyIdx = historyIdx - 1;
+                }
+            }
+            else if(input[1] == 0x48)
+            {
+                if(historyIdx < historyCount)
+                {
+                    historyIdx = historyIdx + 1;
+                }
+            }
+            else 
+            {
+                interrupt(0x21, 0, "command not found", 0, 0);
+            }
+            if(historyIdx != -1)
+            {
+                interrupt(0x21, 0, history[historyIdx], 0, 0);
+                strslice(history[historyIdx], temp, 0, strlen(history[historyIdx]));
+                *(input) = 0xFF;
+                *(input+1) = 0xFF;
+                *(temp+strlen(history[historyIdx])) = 0x0;
+                strslice(temp, input + 2 ,0 , strlen(temp));
+                *(input+2+strlen(temp)) = 0x0;
+            }
+            else
+            {
+                clear(input,128);
+            }
+            arrowPressed = 1;
             tabPressed = 1;
         } else {
             if(strcmp(command[0], "cd", strlen(command[0])) && strlen(command[0])==2){
@@ -525,25 +559,39 @@ void shell(){
             }
 
             //simpen command ke history
+            // if(historyCount < 3) {
+            //     historyCount++;
+            //     strslice(input, history[historyCount], 0, strlen(input));
+            //     *(history[historyCount] + strlen(input)) = 0x0;
+            // } else {
+            //     historyIdx = 0;
+            //     while(historyIdx < 3) {
+            //         strslice(history[historyIdx+1], history[historyIdx], 0, strlen(history[historyIdx+1]));
+            //         *(history[historyIdx] + strlen(history[historyIdx+1])) = 0x0;
+            //         historyIdx++;
+            //     }
+            //     strslice(input, history[3], 0, strlen(input));
+            //     *(history[3] + strlen(input)) = 0x0;
+            //     historyCount = 3;
+            // }
+            // historyIdx=-1;
+            // tabPressed = 0;
+            // arrowPressed = 0;
+            for(i = 2 ;i>=0 ;i--)
+            {
+                strslice(history[i], history[i+1], 0, strlen(history[i]));
+                *(history[i+1]+strlen(history[i])) = 0x0;
+            }
             if(historyCount < 3) {
                 historyCount++;
-                strslice(input, history[historyCount], 0, strlen(input));
-                *(history[historyCount] + strlen(input)) = 0x0;
-            } else {
-                historyIdx = 0;
-                while(historyIdx < 3) {
-                    strslice(history[historyIdx+1], history[historyIdx], 0, strlen(history[historyIdx+1]));
-                    *(history[historyIdx] + strlen(history[historyIdx+1])) = 0x0;
-                    historyIdx++;
-                }
-                strslice(input, history[3], 0, strlen(input));
-                *(history[3] + strlen(input)) = 0x0;
-                historyCount = 3;
             }
-            
+            strslice(input, history[0], 0, strlen(input));
+            *(history[0]+strlen(input)) = 0x0;
+            historyIdx=-1;
             tabPressed = 0;
             arrowPressed = 0;
+            clear(input,128);
         }
-        // clear(input,128);
+        
     }
 }
