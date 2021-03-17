@@ -40,9 +40,7 @@ _interrupt:
 	mov cx,[bp+10]
 	mov dx,[bp+12]
 
-intr:	int 0x00	;call the interrupt (00 will be changed above)
-
-	mov ah,0	;we only want AL returned
+intr:	int 0x00	;call the interrupt (00 will be changed above
 	pop bp
 	ret
 

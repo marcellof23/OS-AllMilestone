@@ -98,7 +98,7 @@ void readString(char *string){
 
   
   low = input & 0x00FF;
-  high = input >> 8;
+  high = (input & 0xFF00) >> 8;
   while(low != 0x00 && low != 0x0d && low != 0x09 && high != 0x48 && high != 0x50) {
     if(low != 0x08){
       *(string+i) = low;
