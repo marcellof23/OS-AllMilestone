@@ -533,7 +533,7 @@ void shell(){
             }
             if(historyIdx != -1)
             {
-                interrupt(0x21, 0, history[historyIdx * 128], 0, 0);
+                interrupt(0x21, 0, history[historyIdx], 0, 0);
                 strslice(history[historyIdx], temp, 0, strlen(history[historyIdx]));
                 *(input) = 0xFF;
                 *(input+1) = 0xFF;
