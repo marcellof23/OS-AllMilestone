@@ -188,7 +188,7 @@ void writeSector(char *buffer,int sector) {
   interrupt(0x13, 0x301, buffer, div(sector,36)*0x100 + mod(sector,18) + 1, mod(div(sector,18),2)*0x100);
 }
 
-void readFile(char *buffer, char *path, int *result, char parentIndex)
+void readFile(char *buffer, char *path, int *result, char parentIndex) //      readFile(BX, CX, DX, AH);
 {
   char files[1024];
   char sectorsFile[512];

@@ -97,10 +97,6 @@ int isempty(char *buffer,int length){
     char test[20];
     for(i=0;i<length;i++){
         if(buffer[i]!=0x0){
-            interrupt(0x21,0,"YA DISINI!\r\n",0,0);
-            itoa(buffer[i],10,test);
-            interrupt(0x21,0,test,0,0);
-            interrupt(0x21,0,"\r\n",0,0);
             return 0;
         }
     }
