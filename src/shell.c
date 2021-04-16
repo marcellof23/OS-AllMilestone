@@ -117,7 +117,7 @@ int getFilePathIdx(unsigned char parentIdx, char *filepath){
 }
 
 int cd(int currParentIdx, char *dirPath) {
-    char *pathList[64];
+    char pathList[64][64];
     int parentIdx;
     int i, j, idx, depth;
     i = 0;
@@ -127,20 +127,20 @@ int cd(int currParentIdx, char *dirPath) {
     while(*(dirPath+i) != 0x0) {
         if(*(dirPath+i) == '/') {
             while(idx < 14) {
-                *(pathList[depth] + idx) = 0x0;
+                pathList[depth][idx] = 0x0;
                 idx++;
             }
             idx = 0;
             depth++;
         } else {
-            *(pathList[depth] + idx) = *(dirPath+i);
+            pathList[depth][idx] = *(dirPath+i);
             idx++;
         }
         i++;
     }
     
     while(idx < 14) {
-        *(pathList[depth] + idx) = 0x0;
+        pathList[depth][idx] = 0x0;
         idx++;
     }
 
