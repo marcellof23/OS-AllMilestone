@@ -24,6 +24,10 @@ void mkdir( char *filenames,unsigned char parentIndex);
 
 void autoComplete(char *filename, char parentIdx);
 
+void rm(char *filename,unsigned char parentIndex);
+
+void rmRecursive(char *filename,unsigned char parentIndex);
+
 void shell();
 
 #endif

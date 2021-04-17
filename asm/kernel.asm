@@ -4,11 +4,11 @@
 
 ;kernel.asm contains assembly functions that you can use in your kernel
 
-extern _imageFile
 global _putInMemory
 global _interrupt
 global _makeInterrupt21
 extern _handleInterrupt21
+extern _launchProgram
 
 ;void putInMemory (int segment, int address, char character)
 _putInMemory:
@@ -78,4 +78,21 @@ _interrupt21ServiceRoutine:
 	pop dx
 
 	iret
-_imageFile: incbin "./misc/paimon.bin"
+
+_launchProgram:
+	mov bp,sp
+	mov bx,[bp+2]
+
+	mov ax,cs
+	mov ds,ax
+	mov si,jump
+	mov [si+3],bx
+
+	mov ds,bx
+	mov ss,bx
+	mov es,bx
+
+	mov sp,0xfff0
+	mov bp,0xfff0
+
+jump:	jmp 0x0000:0x0000

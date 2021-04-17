@@ -2,7 +2,7 @@
 
 import os
 
-with open("../output/system.img", 'rb') as f:
+with open("./output/system.img", 'rb') as f:
     system = f.read()
     system = bytearray(system)
     print("System length" ,len(system))
@@ -13,7 +13,9 @@ with open("../output/system.img", 'rb') as f:
     sector = system[259*512:260*512]
 
 # filepath = input("Input filepath: ")
-filepath = "../misc/a.txt"
+filepath = "./misc/"
+filename = str(input("Masukkan nama file: "))
+filepath += filename
 x = filepath.split("/")
 filename = x[-1]
 print(filename)
@@ -85,7 +87,7 @@ if(emptysector-256>sectorneeded and filesectorfound):
         system[sectors[i]*512:(sectors[i]+1)*512] = bytes(filechunk[i]).ljust(512,b'\0')
 
     print("System length" ,len(system))
-    with open("../output/system.img", 'wb') as f:
+    with open("./output/system.img", 'wb') as f:
         f.write(bytes(system))
 
 else:
