@@ -79,3 +79,21 @@ _interrupt21ServiceRoutine:
 
 	iret
 _imageFile: incbin "./misc/paimon.bin"
+
+_launchProgram:
+	mov bp,sp
+	mov bx,[bp+2]
+
+	mov ax,cs
+	mov ds,ax
+	mov si,jump
+	mov [si+3],bx
+
+	mov ds,bx
+	mov ss,bx
+	mov es,bx
+
+	mov sp,0xfff0
+	mov bp,0xfff0
+
+jump:	jmp 0x0000:0x0000
