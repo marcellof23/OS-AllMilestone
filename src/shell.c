@@ -446,10 +446,6 @@ void rm(char *filename,unsigned char parentIndex){
 
 
     idx = getFilePathIdx(parentIndex, filename);
-    itoa(idx,10,debugOutput);
-    interrupt(0x21,0,debugOutput,0,0);
-    interrupt(0x21,0,"\r\n",0,0);
-    clear(debugOutput,64);
 
     if(files[idx*16+1]==0xFF)
     {
@@ -504,6 +500,30 @@ void rm(char *filename,unsigned char parentIndex){
     interrupt(0x21, 3, files, 0x101, 0);
     interrupt(0x21, 3, files+512, 0x102, 0);
     interrupt(0x21,3,sectors,0x103,0);
+}
+
+void rmRecursive(char *filename,unsigned char parentIndex){
+    char files[1024];
+    int i=0;
+    int idx;
+    char childFilename[14];
+
+    interrupt(0x21, 2, files, 0x101, 0);
+    interrupt(0x21, 2, files+512, 0x102, 0);
+
+    idx = getFilePathIdx(parentIndex, filename);
+
+    for(i=0;i<64;i++){
+        if(files[i*16]==idx){
+            strslice(files+i*16,childFilename,2,16);
+            interrupt(0x21,0,childFilename,0,0);
+            interrupt(0x21,0,"\r\n",0,0);
+            rmRecursive(childFilename, idx);
+            clear(childFilename,14);
+        }
+    }
+
+    rm(filename,parentIndex);
 }
 
 
@@ -627,7 +647,7 @@ void shell(){
             else if(strcmp(command[0],"rm",strlen(command[0])) && strlen(command[0])==2) 
             {
                 if(strcmp(command[1],"-r",strlen(command[1])) && strlen(command[1])==2){
-                    interrupt(0x21,0,"rm recursive dipanggil\r\n",0,0);
+                    rmRecursive(command[2], parentIdx);
                 } else{
                     rm(command[1],parentIdx);
                 }
