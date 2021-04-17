@@ -17,7 +17,7 @@ void executeProgram(char *filename, int segment, int *success, char parentIndex)
 
 
 int main () {
-  int x = 1;
+  char execStatus[16];
   // makeInterrupt21();
   // // cls(3);
   // // shell();
@@ -27,7 +27,7 @@ int main () {
 
   cls(3);
 
-  executeProgram("bash", 0x5000, &x, 0xFF);
+  interrupt(0x21,0xFF06,"shell",0x3000,execStatus);
   while(1);
 }
 
@@ -169,6 +169,7 @@ void readFile(char *buffer, char *path, int *result, char parentIndex) //      r
           clear(buffer+j*512, 512);
         }
       }
+      break;
     }
     i+=16;
   }

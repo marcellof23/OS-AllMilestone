@@ -11,6 +11,8 @@ ld86 -o ./output/kernel -d ./output/kernel.o ./output/kernel_asm.o ./output/util
 nasm -f as86 ./asm/lib.asm -o ./output/lib_asm.o
 # ld86 -o ./output/lib -d ./output/lib_asm.o
 
-ld86 -o ./bin/bash -d ./output/shell.o ./output/utilities.o ./output/lib_asm.o
+ld86 -o ./bin/shell -d ./output/shell.o ./output/utilities.o ./output/lib_asm.o
+
+./compile_lib.sh
 
 dd if=./output/kernel of=./output/system.img bs=512 conv=notrunc seek=1
