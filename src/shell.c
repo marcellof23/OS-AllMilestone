@@ -56,7 +56,18 @@ int main(){
         interrupt(0x21,0,"\r\n",0,0);
         commandCount = strsplit(input,' ',command);
 
-        interrupt(0x21,0xFF06,input,0x3000,execStatus);
+        if(strcmp(command[0], "cd", strlen(command[0])) && strlen(command[0])==2){
+            targetDir = cd(parentIdx,command[1]);
+            if(targetDir != -1) {
+                parentIdx = targetDir;
+            } else {
+                interrupt(0x21,0, "No such directory\r\n",0,0);
+            }
+        } else if(strcmp(command[0],"ls",strlen(command[0])) && strlen(command[0])==2){
+            ls(parentIdx);
+        } else{
+            interrupt(0x21,0xFF06,input,0x3000,execStatus);
+        }
 
         // if(*(command[commandCount-1]+strlen(command[commandCount-1])-1) == 0x09) {
 
@@ -238,39 +249,39 @@ void cwd(int pathIdx, char *dir) {
     *(dir+dirindex+2) = 0x0;
 }
 
-// int getPathIdx(int parentIdx, char *filename) { //Get Index file di files
-//     char file[512 * 2];
-//     char currFile[14];
-//     int i;
-//     interrupt(0x21, 2, file, 0x101, 0);
-//     interrupt(0x21, 2, file + 512, 0x102, 0);
+int getPathIdx(int parentIdx, char *filename) { //Get Index file di files
+    char file[512 * 2];
+    char currFile[14];
+    int i;
+    interrupt(0x21, 2, file, 0x101, 0);
+    interrupt(0x21, 2, file + 512, 0x102, 0);
 
-//     if(*(filename) == '~') {
-//         return 0xFF;
-//     } else if(*(filename) == '.' && *(filename+1) == '.') {
-//         if((unsigned char)parentIdx == 0xFF) {
-//             return -1;
-//         } else {
-//             return file[parentIdx << 4];
-//         }
-//     } else if(*(filename) == '.') {
-//         return parentIdx;
-//     } else {
-//         i = 0;
-//         while(i < 1024) {
-//             strslice(file, currFile, i+2, i+16);
-//             if(strcmp(filename, currFile, strlen(filename)) && (unsigned char)parentIdx == file[i]) {
-//                 if((unsigned char)file[i+1] == 0xFF) {
-//                     return div(i,16);
-//                 } else {
-//                     return -1;
-//                 }
-//             }
-//             i += 16;
-//         }
-//         return -1;
-//     }
-// }
+    if(*(filename) == '~') {
+        return 0xFF;
+    } else if(*(filename) == '.' && *(filename+1) == '.') {
+        if((unsigned char)parentIdx == 0xFF) {
+            return -1;
+        } else {
+            return file[parentIdx << 4];
+        }
+    } else if(*(filename) == '.') {
+        return parentIdx;
+    } else {
+        i = 0;
+        while(i < 1024) {
+            strslice(file, currFile, i+2, i+16);
+            if(strcmp(filename, currFile, strlen(filename)) && (unsigned char)parentIdx == file[i]) {
+                if((unsigned char)file[i+1] == 0xFF) {
+                    return div(i,16);
+                } else {
+                    return -1;
+                }
+            }
+            i += 16;
+        }
+        return -1;
+    }
+}
 
 // int getFilePathIdx(unsigned char parentIdx, char *filepath){
 //     char file[1024];
@@ -303,223 +314,43 @@ void cwd(int pathIdx, char *dir) {
 //     return 999; // Shouldn't be possible to reach 999, only for debugging purposes
 // }
 
-// void mv(char *filename, char *target, int parentIdx) {
-//     char files[1024];
-//     char currFile[14];
-//     char * outTest;
-//     int i, newParentIdx, isFolder = 0;
-
-//     interrupt(0x21,2,files,0x101,0,0);
-//     interrupt(0x21,2,files+512,0x102,0,0);
-
-//     // cari target
-//     i = 0;
-//     while(i < 1024) {
-//         strslice(files, currFile, i+2, i+16);
-//         if(strcmp(target, currFile, strlen(filename)) && strlen(target) == strlen(currFile)) {
-//             if((unsigned char)files[i+1] == 0xFF) {
-//                 isFolder = 1;
-//                 newParentIdx = div(i,16);
-//             }
-//         }
-//         i += 16;
-//     }
-
-//     if(isFolder) {
-//         // ngubah file directory
-//         i = 0;
-//         while(i < 1024) {
-//             strslice(files, currFile, i+2, i+16);
-//             if(strcmp(filename, currFile, strlen(filename)) && strlen(filename) == strlen(currFile)) {
-//                 files[i] = (unsigned char) newParentIdx;
-//                 interrupt(0x21, 3, files, 0x101, 0, 0);
-//                 interrupt(0x21, 3, files+512, 0x102, 0, 0);
-//                 break;
-//             }
-//             i += 16;
-//         }
-//     } else {
-//         // rename file
-//         i = 0;
-//         while(i < 1024) {
-//             strslice(files, currFile, i+2, i+16);
-//             if(strcmp(filename, currFile, strlen(filename)) && strlen(filename) == strlen(currFile)) {
-//                 clear(files+i+2, 14);
-//                 strslice(target, files+i+2, 0, strlen(target));
-
-//                 interrupt(0x21, 3, files, 0x101, 0, 0);
-//                 interrupt(0x21, 3, files+512, 0x102, 0, 0);
-//                 break;
-//             }
-//             i += 16;
-//         }
-//     }
-// }
-
-// int cd(int currParentIdx, char *dirPath) {
-//     char pathList[64][64];
-//     int parentIdx;
-//     int i, j, idx, depth;
-//     i = 0;
-//     idx = 0;
-//     depth = 0;
+int cd(int currParentIdx, char *dirPath) {
+    char pathList[64][64];
+    int parentIdx;
+    int i, j, idx, depth;
+    i = 0;
+    idx = 0;
+    depth = 0;
     
-//     while(*(dirPath+i) != 0x0) {
-//         if(*(dirPath+i) == '/') {
-//             while(idx < 14) {
-//                 pathList[depth][idx] = 0x0;
-//                 idx++;
-//             }
-//             idx = 0;
-//             depth++;
-//         } else {
-//             pathList[depth][idx] = *(dirPath+i);
-//             idx++;
-//         }
-//         i++;
-//     }
+    while(*(dirPath+i) != 0x0) {
+        if(*(dirPath+i) == '/') {
+            while(idx < 14) {
+                pathList[depth][idx] = 0x0;
+                idx++;
+            }
+            idx = 0;
+            depth++;
+        } else {
+            pathList[depth][idx] = *(dirPath+i);
+            idx++;
+        }
+        i++;
+    }
     
-//     while(idx < 14) {
-//         pathList[depth][idx] = 0x0;
-//         idx++;
-//     }
+    while(idx < 14) {
+        pathList[depth][idx] = 0x0;
+        idx++;
+    }
 
-//     parentIdx = currParentIdx;
-//     for(j = 0; j <= depth; j++) {
-//         parentIdx = getPathIdx(parentIdx, pathList[j]);
-//         if(parentIdx == -1) {
-//             break;
-//         }
-//     }
-//     return parentIdx;
-// }
-
-//usage : ln -s original_file linked_file
-// status code : 0 (success), -1 (original_file error) , -2 (linked_file error), -3 (sector full)
-// soft calculation files index = files[i+1] - 0x1F (if files[i+1]>=x20)
-// int ln(char *filepath, char *filelink,int soft,unsigned char parentIndex){
-//     char files[1024];
-//     char sectors[512];
-//     int i,j;
-//     int idx;
-//     // char output[100];
-//     char filepathmatrix[16][64];
-//     char filelinkmatrix[16][64];
-//     int charcount,linkcount;
-//     char res[100];
-//     char filename[14];
-
-//     interrupt(0x21,2,files,0x101,0,0);
-//     interrupt(0x21,2,files+512,0x102,0,0);
-
-//     if(soft){
-//         idx = getFilePathIdx(parentIndex,filepath);
-//         if((getFilePathIdx(parentIndex, filepath)==-1 || getFilePathIdx(parentIndex,filepath)==-2)){
-//             interrupt(0x21,0, "Original file not found\r\n",0,0);
-//             return -1;
-//         }
-//         if(getFilePathIdx(parentIndex, filelink)>=0){
-//             interrupt(0x21,0, "File already exists!\r\n",0,0);
-//             return -2;
-//         }
-//         if(getFilePathIdx(parentIndex,filelink)!=-2){
-//             interrupt(0x21,0,"Destination folder doesn't exist\r\n");
-//             return -2;
-//         }
-//         // IF everything is OK
-
-//         linkcount = strsplit(filelink, '/', filelinkmatrix);
-//         charcount =0;
-//         for(i=0;i<linkcount;i++){
-//             j=0;
-//             while(j<64 && filelinkmatrix[i][j]){
-//                 charcount++;
-//                 j++;
-//             }
-//         }
-//         for(i=charcount;i>=0;i--){
-//             if(filelink[i]=='/'){
-//                 break;
-//             }
-//         }
-
-//         if(i==-1 || linkcount==1){
-//             strslice(filelink,filename,0,16);
-//         } else{
-//             strslice(filelink,res,0,i);
-//             strslice(filelink,filename,i+1,16);
-//         }
-
-//         for(i=0;i<1024;i+=16){
-//             if(isempty(files+i,16)){
-//                 files[i] = linkcount == 1 ? parentIndex : getPathIdx(parentIndex,res);
-//                 files[i+1] = 0x20 + idx;
-//                 for(j=2;j<16;j++){
-//                     files[i+j] = filename[j-2];
-//                 }
-//                 interrupt(0x21,3,files,0x101,0,0);
-//                 interrupt(0x21,3,files+512,0x102,0,0);
-//                 return 0;
-//             }
-//         }
-//         interrupt(0x21,0,"cannot create file as files sector is already full\r\n",0,0);
-//         return -3;
-//     } else{
-//         idx = getFilePathIdx(parentIndex,filepath);
-    
-//         if((getFilePathIdx(parentIndex, filepath)==-1 || getFilePathIdx(parentIndex,filepath)==-2)){
-//             interrupt(0x21,0, "Original file not found\r\n",0,0);
-//             return -1;
-//         }
-//         if(getFilePathIdx(parentIndex, filelink)>=0){
-//             interrupt(0x21,0, "File already exists!\r\n",0,0);
-//             return -2;
-//         }
-//         if(getFilePathIdx(parentIndex,filelink)!=-2){
-//             interrupt(0x21,0,"Destination folder doesn't exist\r\n");
-//             return -2;
-//         }
-//         // IF everything is OK
-
-//         linkcount = strsplit(filelink, '/', filelinkmatrix);
-//         charcount =0;
-//         for(i=0;i<linkcount;i++){
-//             j=0;
-//             while(j<64 && filelinkmatrix[i][j]){
-//                 charcount++;
-//                 j++;
-//             }
-//         }
-//         for(i=charcount;i>=0;i--){
-//             if(filelink[i]=='/'){
-//                 break;
-//             }
-//         }
-
-//         if(i==-1 || linkcount==1){
-//             strslice(filelink,filename,0,16);
-//         } else{
-//             strslice(filelink,res,0,i);
-//             strslice(filelink,filename,i+1,16);
-//         }
-
-//         for(i=0;i<1024;i+=16){
-//             if(isempty(files+i,16)){
-//                 files[i] = linkcount == 1 ? parentIndex : getPathIdx(parentIndex,res);
-//                 files[i+1] = files[idx*16+1];
-//                 for(j=2;j<16;j++){
-//                     files[i+j] = filename[j-2];
-//                 }
-//                 interrupt(0x21,3,files,0x101,0,0);
-//                 interrupt(0x21,3,files+512,0x102,0,0);
-//                 return 0;
-//             }
-//         }
-//         interrupt(0x21,0,"cannot create file as files sector is already full\r\n",0,0);
-//         return -3;
-//     }
-//     return 0;
-// }
+    parentIdx = currParentIdx;
+    for(j = 0; j <= depth; j++) {
+        parentIdx = getPathIdx(parentIdx, pathList[j]);
+        if(parentIdx == -1) {
+            break;
+        }
+    }
+    return parentIdx;
+}
 
 void ls(unsigned char parentIndex)
 {
@@ -553,48 +384,6 @@ void ls(unsigned char parentIndex)
   }
 }
 
-// void cat(char * filenames, unsigned char parentIdx)
-// {
-//     char files[1024];
-//     char buff[512 * 16];
-//     int idx = strlen(filenames);
-//     int pathIdx;
-//     char output[100];
-//     char filematrix[64][64];
-//     char countsplit;
-//     char linkedname[17];
-//     // char * currfile;
-//     interrupt(0x21, 2, files, 0x101, 0);
-//     interrupt(0x21, 2, files+512, 0x102, 0);
-//     while(idx < 14) {
-//         *(filenames + idx) = 0x0;
-//         idx++;
-//     }
-//     clear(output,100);
-//     pathIdx = getFilePathIdx(parentIdx, filenames);
-//     countsplit = strsplit(filenames, '/', filematrix);
-
-//     if(files[0x10*pathIdx+1]<0x20){
-//         if(pathIdx>=0)
-//         {
-//             interrupt(0x21, 4 + 0x100*files[0x10*pathIdx], buff, filematrix[countsplit-1], 0);
-//             interrupt(0x21, 0, buff , 0, 0);
-//             interrupt(0x21, 0, "\r\n" , 0, 0);
-//             return;
-//         }
-//     } else{
-//         if(pathIdx>=0)
-//         {
-//             strslice(files+0x10*(files[0x10*pathIdx+1]-0x20),linkedname,2,16);
-//             interrupt(0x21, 4 + 0x100*(files[0x10*(files[0x10*pathIdx+1]-0x20)]), buff, linkedname, 0);
-//             interrupt(0x21, 0, buff , 0, 0);
-//             interrupt(0x21,0,"\r\n", 0,0);
-//             return;
-//         }       
-//     }
-//     interrupt(0x21, 0, "file tidak ditemukan\r\n", 0, 0);
-// }
-
 void autoComplete(char *filename, char parentIdx) {
     char files[512 * 2];
     char *temp;
@@ -624,144 +413,3 @@ void autoComplete(char *filename, char parentIdx) {
         i += 16;
     }
 }
-
-// void mkdir( char *filenames,unsigned char parentIndex)
-// {
-//     char files[1024];
-//     int i = 0, InitIdx;
-//     int j = 0;
-//     interrupt(0x21, 2, files, 0x101, 0);
-//     interrupt(0x21, 2, files+512, 0x102, 0);
-//     while(i<0x40)
-//     {
-//         if(files[i * 0x10] == parentIndex && (strcmp(filenames,files + (i * 16) + 2 ,14) == 1) )
-//         {
-//             interrupt(0x21, 0, "Folder sudah ada \r\n", 0, 0);
-//             return;
-//         }
-//         i++;
-//     }
-
-    
-//     while(files[j*0x10+2] != '\0' )
-//     {
-//         j++;
-//     } 
-//     if(j < 0 || j >= 64)
-//     {
-//         interrupt(0x21, 0, "Sudah tidak bisa ditambah \r\n", 0, 0);
-//     }
-//     else
-//     {
-//         InitIdx = j * 0x10;
-//         files[InitIdx] = parentIndex;
-//         files[InitIdx + 1] = 0xFF;
-//         for(i = 0 ;i < 14; i++)
-//         {
-//             if(filenames[i] == '\0')
-//                 break;
-//             files[InitIdx + i + 2] = filenames[i];
-//         }
-//     }
-//     interrupt(0x21, 3, files, 0x101, 0);
-//     interrupt(0x21, 3, files+512, 0x102, 0);
-
-//     // interrupt(0x21, 0, filenames, 0, 0);
-// }
-
-// void rm(char *filename,unsigned char parentIndex){
-//     char map[512];
-//     char files[1024];
-//     char sectors[512];
-//     char debugOutput[64];
-//     int i=0;
-//     int idx;
-//     int linked=0;
-//     int empty = 1;
-
-//     interrupt(0x21,2,map,0x100,0);
-//     interrupt(0x21, 2, files, 0x101, 0);
-//     interrupt(0x21, 2, files+512, 0x102, 0);
-//     interrupt(0x21,2,sectors,0x103,0);
-
-
-//     idx = getFilePathIdx(parentIndex, filename);
-
-//     if(files[idx*16+1]==0xFF)
-//     {
-//         interrupt(0x21,0,"It's a folder\r\n",0,0);
-        
-//         for(i=0;i<64;i++){
-//             if(files[i*16]==idx){
-//                 empty = 0;
-//                 break;
-//             }
-//         }
-
-//         if(empty){
-//             for(i=0;i<16;i++){
-//                 files[idx*16+i] = 0x0;
-//             }
-//         } else{
-//             interrupt(0x21,0,"Folder is not empty, try using -r flag\r\n",0,0);
-//         }
-
-//     } 
-//     else{
-//         interrupt(0x21,0,"It's a file\r\n",0,0);
-//         i=0;
-//         while(i<64){
-//             if(i!=idx && files[i*16+1]==files[idx*16+1] && files[i*16+2]!=0x0){
-//                 linked = 1;
-//                 break;
-//             }
-//             i++;
-//         }
-//         if(!linked)
-//         {
-//             interrupt(0x21,0,"File sector is safe to delete\r\n",0,0);
-//             for(i=0;i<16;i++){
-//                 if(sectors[files[idx*16+1]*16+i] != 0x0 && map[sectors[files[idx*16+1]*16+i]] != 0x0){
-//                     map[sectors[files[idx*16+1]*16+i]] = 0x0;
-//                     sectors[files[idx*16+1]*16+i] = 0x0;
-//                 }
-//             }
-//         } 
-//         else
-//         {
-//             interrupt(0x21,0,"Some file is linked to the same file\r\n",0,0);
-//         }
-//         for(i=0;i<16;i++){
-//             files[idx*16+i] = 0x0;
-//         }
-//     }
-
-//     interrupt(0x21,3,map,0x100,0);
-//     interrupt(0x21, 3, files, 0x101, 0);
-//     interrupt(0x21, 3, files+512, 0x102, 0);
-//     interrupt(0x21,3,sectors,0x103,0);
-// }
-
-// void rmRecursive(char *filename,unsigned char parentIndex){
-//     char files[1024];
-//     int i=0;
-//     int idx;
-//     char childFilename[14];
-
-//     interrupt(0x21, 2, files, 0x101, 0);
-//     interrupt(0x21, 2, files+512, 0x102, 0);
-
-//     idx = getFilePathIdx(parentIndex, filename);
-
-//     for(i=0;i<64;i++){
-//         if(files[i*16]==idx){
-//             strslice(files+i*16,childFilename,2,16);
-//             interrupt(0x21,0,childFilename,0,0);
-//             interrupt(0x21,0,"\r\n",0,0);
-//             rmRecursive(childFilename, idx);
-//             clear(childFilename,14);
-//         }
-//     }
-
-//     rm(filename,parentIndex);
-// }

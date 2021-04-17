@@ -13,4 +13,4 @@ dd if=./output/files.img of=./output/system.img bs=512 count=2 seek=257 conv=not
 dd if=./output/sectors.img of=./output/system.img bs=512 count=1 seek=259 conv=notrunc
 
 python3 script/loadfile.py ./bin/shell
-python3 script/loadfile.py ./bin/ls ./bin/ln ./bin/cp ./bin/cat ./bin/mv ./bin/rm ./bin/mkdir
+python3 script/loadfile.py ./bin/ln ./bin/cp ./bin/cat ./bin/mv ./bin/rm ./bin/mkdir
