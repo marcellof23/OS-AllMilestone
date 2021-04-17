@@ -101,7 +101,7 @@ int getFilePathIdx(unsigned char parentIdx, char *filepath){
         }
         if(i==totalchunks-1){ //Finale
             for(j=0;j<1024;j+=16){
-                if(file[j]==fileidxlooper && (unsigned char)file[j+1]!=0xFF){
+                if(file[j]==fileidxlooper){ // && (unsigned char)file[j+1]!=0xFF
                     strslice(file,currFile,j+2,j+16);
                     if(strcmp(currFile,pathchunks[i],strlen(currFile)) && strlen(currFile)==strlen(pathchunks[i])){
                         return div(j,16);
@@ -429,6 +429,63 @@ void mkdir( char *filenames,unsigned char parentIndex)
     // interrupt(0x21, 0, filenames, 0, 0);
 }
 
+void rm(char *filename,unsigned char parentIndex){
+    char map[512];
+    char files[1024];
+    char sectors[512];
+    char debugOutput[64];
+    int i=0;
+    int idx;
+    int linked=0;
+
+    interrupt(0x21,2,map,0x100,0);
+    interrupt(0x21, 2, files, 0x101, 0);
+    interrupt(0x21, 2, files+512, 0x102, 0);
+    interrupt(0x21,2,sectors,0x103,0);
+
+
+    idx = getFilePathIdx(parentIndex, filename);
+    itoa(idx,10,debugOutput);
+    interrupt(0x21,0,debugOutput,0,0);
+    interrupt(0x21,0,"\r\n",0,0);
+    clear(debugOutput,64);
+
+    if(files[idx*16+1]==0xFF){
+        interrupt(0x21,0,"It's a folder\r\n",0,0);
+    } else{
+        interrupt(0x21,0,"It's a file\r\n",0,0);
+        i=0;
+        while(i<64){
+            if(i!=idx && files[i*16+1]==files[idx*16+1] && files[i*16+2]!=0x0){
+                linked = 1;
+                break;
+            }
+            i++;
+        }
+        if(linked)
+        {
+            interrupt(0x21,0,"Some file is linked to the same file\r\n",0,0);
+        } 
+        else
+        {
+            interrupt(0x21,0,"File sector is safe to delete\r\n",0,0);
+            for(i=0;i<16;i++){
+                if(sectors[files[idx*16+1]*16+i] != 0x0 && map[sectors[files[idx*16+1]*16+i]] != 0x0){
+                    map[sectors[files[idx*16+1]*16+i]] = 0x0;
+                    sectors[files[idx*16+1]*16+i] = 0x0;
+                }
+            }
+            for(i=0;i<16;i++){
+                files[idx*16+i] = 0x0;
+            }
+            interrupt(0x21,3,map,0x100,0);
+            interrupt(0x21, 3, files, 0x101, 0);
+            interrupt(0x21, 3, files+512, 0x102, 0);
+            interrupt(0x21,3,sectors,0x103,0);
+        }
+    }
+}
+
 
 void shell(){
     int i, j, commandCount, historyCount = -1, historyIdx = -1, count, idx;
@@ -549,7 +606,13 @@ void shell(){
                 } else{
                     status = ln(command[1],command[2],0,parentIdx);
                 }
-            } else if(strcmp(command[0],"history",strlen(command[0])) && strlen(command[0])==7) {
+            } 
+            else if(strcmp(command[0],"rm",strlen(command[0])) && strlen(command[0])==2) 
+            {
+                rm(command[1],parentIdx);
+            }
+            else if(strcmp(command[0],"history",strlen(command[0])) && strlen(command[0])==7) 
+            {
                 interrupt(0x21,0,"history dipanggil hahaha\n\r",0,0);
                 for(i = 3; i >= 0; i--) {
                     if(*(history[i]) == 0x0) {
@@ -559,7 +622,8 @@ void shell(){
                         interrupt(0x21, 0, "\n\r", 0, 0);
                     }
                 }
-            }else{
+            }
+            else{
                 interrupt(0x21,0, command[0],0,0);
                 interrupt(0x21,0," not found\r\n",0,0);
             }
