@@ -1,5 +1,4 @@
 #include "utilities.h"
-#include "shell.h"
 
 int VIDEO_OFFSET=0x8000;
 int VIDEO_SEGMENT=0xB000;
@@ -7,7 +6,6 @@ int VIDEO_SCREEN_SIZE = 4000;
 
 void handleInterrupt21 (int AX, int BX, int CX, int DX);
 void printString(char *string);
-void printStringNoNewline(char *string);
 void readString(char *string);
 void printOSName();
 void cls(int displaymode);
@@ -29,7 +27,7 @@ int main () {
 
   cls(3);
 
-  executeProgram("shell_linked", 0x9000, &x, 0xFF);
+  executeProgram("bash", 0x5000, &x, 0xFF);
   while(1);
 }
 
@@ -73,14 +71,6 @@ void printString(char *string){
   }
   // interrupt(0x10,0xe00 + '\n',0,0,0);
   // interrupt(0x10,0xe00 + '\r',0,0,0);
-}
-
-void printStringNoNewline(char *string){
-  int i=0;
-  while(*(string+i)!='\0'){
-    interrupt(0x10,0xe00 + *(string+i),0,0,0);
-    i++;
-  }
 }
 
 void readString(char *string){
