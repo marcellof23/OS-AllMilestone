@@ -19,12 +19,18 @@ void executeProgram(char *filename, int segment, int *success, char parentIndex)
 
 
 int main () {
-  int x=1;
+  int x = 1;
+  // makeInterrupt21();
+  // // cls(3);
+  // // shell();
+  // // while (1);
+
   makeInterrupt21();
+
   cls(3);
-  // shell();
-  // while (1);
-  executeProgram("hello_linked", 0x2000, &x, 0xFF);
+
+  executeProgram("shell_linked", 0x9000, &x, 0xFF);
+  while(1);
 }
 
 
@@ -142,31 +148,6 @@ void cls(int displaymode){
   interrupt(0x10,displaymode,0,0,0);
 }
 
-void printOSName(){
-  printString(" /$$$$$$$ /$$  \r\n");
-  printString("| $$__  $|__/ \r\n");
-  printString("| $$  \\ $$/$$ /$$$$$$ \r\n");
-  printString("| $$$$$$$| $$/$$__  $$   \r\n");
-  printString("| $$____/| $| $$$$$$$$ \r\n");
-  printString("| $$     | $| $$_____/ \r\n");
-  printString("| $$     | $|  $$$$$$$ \r\n");
-  printString("|/$$     |/$$\\_______/   \r\n");
-  printString("| $$$    /$$$    \r\n");
-  printString("| $$$$  /$$$$ /$$$$$$  /$$$$$$ /$$$$$$$\r\n");
-  printString("| $$ $$/$$ $$/$$__  $$/$$__  $| $$__  $$\r\n");
-  printString("| $$  $$$| $| $$  \\ $| $$  \\ $| $$  \\ $$\r\n");
-  printString("| $$\\  $ | $| $$  | $| $$  | $| $$  | $$\r\n");
-  printString("| $$ \\/  | $|  $$$$$$|  $$$$$$| $$  | $$\r\n");
-  printString("|_/$$$$$$|_/$$$$$$__/ \\______/|__/  |__/\r\n");
-  printString(" /$$__  $$/$$__  $$ \r\n");
-  printString("| $$  \\ $| $$  \\__/ \r\n");
-  printString("| $$  | $|  $$$$$$    \r\n");
-  printString("| $$  | $$\\____  $$  \r\n");
-  printString("| $$  | $$/$$  \\ $$  \r\n");
-  printString("|  $$$$$$|  $$$$$$/  \r\n");
-  printString(" \\______/ \\______/  \r\n");
-}
-
 void readSector(char *buffer,int sector) {
   interrupt(0x13, 0x201, buffer, div(sector,36)*0x100 + mod(sector,18) + 1, mod(div(sector,18),2)*0x100);
 }
@@ -208,6 +189,7 @@ void readFile(char *buffer, char *path, int *result, char parentIndex) //      r
     *result = 1;
   }
 }
+
 void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
 {
   char map[512];
@@ -322,12 +304,12 @@ void executeProgram(char *filename, int segment, int *success, char parentIndex)
     // Buat buffer
     int isSuccess;
     char fileBuffer[512 * 16];
+    int i=0;
     // Buka file dengan readFile
     readFile(&fileBuffer, filename, &isSuccess, parentIndex);
     // If success, salin dengan putInMemory
-    if (isSuccess) {
+    if (isSuccess==1) {
         // launchProgram
-        int i = 0;
         for (i = 0; i < 512*16; i++) {
             putInMemory(segment, i, fileBuffer[i]);
         }

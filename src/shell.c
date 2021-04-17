@@ -751,3 +751,8 @@ void shell(){
         
     }
 }
+
+int main(){
+    shell();
+    return 0;
+}

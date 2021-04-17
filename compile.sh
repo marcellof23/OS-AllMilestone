@@ -9,6 +9,6 @@ nasm -f as86 ./asm/kernel.asm -o ./output/kernel_asm.o
 ld86 -o ./output/kernel -d ./output/kernel.o ./output/kernel_asm.o ./output/utilities.o ./output/shell.o
 
 nasm -f as86 ./asm/lib.asm -o ./output/lib_asm.o
-ld86 -o ./output/lib -d ./output/lib_asm.o
+# ld86 -o ./output/lib -d ./output/lib_asm.o
 
 dd if=./output/kernel of=./output/system.img bs=512 conv=notrunc seek=1
