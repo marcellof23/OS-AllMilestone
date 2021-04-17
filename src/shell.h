@@ -28,6 +28,8 @@ void rm(char *filename,unsigned char parentIndex);
 
 void rmRecursive(char *filename,unsigned char parentIndex);
 
+void mv(char *filename, char *target, int parentIdx);
+
 void shell();
 
 #endif
