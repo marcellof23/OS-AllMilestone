@@ -19,10 +19,12 @@ void executeProgram(char *filename, int segment, int *success, char parentIndex)
 
 
 int main () {
+  int x=1;
   makeInterrupt21();
   cls(3);
-  shell();
-  while (1);
+  // shell();
+  // while (1);
+  executeProgram("hello_linked", 0x2000, &x, 0xFF);
 }
 
 
