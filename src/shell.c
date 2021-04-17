@@ -1,5 +1,7 @@
 #include "shell.h"
 #include "utilities.h"
+#include "kernel.c"
+int a = 0;
 
 void cwd(int pathIdx, char *dir) {
     int depth = 0;
@@ -101,7 +103,7 @@ int getFilePathIdx(unsigned char parentIdx, char *filepath){
         }
         if(i==totalchunks-1){ //Finale
             for(j=0;j<1024;j+=16){
-                if(file[j]==fileidxlooper && (unsigned char)file[j+1]!=0xFF){
+                if(file[j]==fileidxlooper){ // && (unsigned char)file[j+1]!=0xFF
                     strslice(file,currFile,j+2,j+16);
                     if(strcmp(currFile,pathchunks[i],strlen(currFile)) && strlen(currFile)==strlen(pathchunks[i])){
                         return div(j,16);
@@ -116,8 +118,61 @@ int getFilePathIdx(unsigned char parentIdx, char *filepath){
     return 999; // Shouldn't be possible to reach 999, only for debugging purposes
 }
 
+void mv(char *filename, char *target, int parentIdx) {
+    char files[1024];
+    char currFile[14];
+    char * outTest;
+    int i, newParentIdx, isFolder = 0;
+
+    interrupt(0x21,2,files,0x101,0,0);
+    interrupt(0x21,2,files+512,0x102,0,0);
+
+    // cari target
+    i = 0;
+    while(i < 1024) {
+        strslice(files, currFile, i+2, i+16);
+        if(strcmp(target, currFile, strlen(filename)) && strlen(target) == strlen(currFile)) {
+            if((unsigned char)files[i+1] == 0xFF) {
+                isFolder = 1;
+                newParentIdx = div(i,16);
+            }
+        }
+        i += 16;
+    }
+
+    if(isFolder) {
+        // ngubah file directory
+        i = 0;
+        while(i < 1024) {
+            strslice(files, currFile, i+2, i+16);
+            if(strcmp(filename, currFile, strlen(filename)) && strlen(filename) == strlen(currFile)) {
+                files[i] = (unsigned char) newParentIdx;
+                interrupt(0x21, 3, files, 0x101, 0, 0);
+                interrupt(0x21, 3, files+512, 0x102, 0, 0);
+                break;
+            }
+            i += 16;
+        }
+    } else {
+        // rename file
+        i = 0;
+        while(i < 1024) {
+            strslice(files, currFile, i+2, i+16);
+            if(strcmp(filename, currFile, strlen(filename)) && strlen(filename) == strlen(currFile)) {
+                clear(files+i+2, 14);
+                strslice(target, files+i+2, 0, strlen(target));
+
+                interrupt(0x21, 3, files, 0x101, 0, 0);
+                interrupt(0x21, 3, files+512, 0x102, 0, 0);
+                break;
+            }
+            i += 16;
+        }
+    }
+}
+
 int cd(int currParentIdx, char *dirPath) {
-    char *pathList[64];
+    char pathList[64][64];
     int parentIdx;
     int i, j, idx, depth;
     i = 0;
@@ -127,20 +182,20 @@ int cd(int currParentIdx, char *dirPath) {
     while(*(dirPath+i) != 0x0) {
         if(*(dirPath+i) == '/') {
             while(idx < 14) {
-                *(pathList[depth] + idx) = 0x0;
+                pathList[depth][idx] = 0x0;
                 idx++;
             }
             idx = 0;
             depth++;
         } else {
-            *(pathList[depth] + idx) = *(dirPath+i);
+            pathList[depth][idx] = *(dirPath+i);
             idx++;
         }
         i++;
     }
     
     while(idx < 14) {
-        *(pathList[depth] + idx) = 0x0;
+        pathList[depth][idx] = 0x0;
         idx++;
     }
 
@@ -429,9 +484,196 @@ void mkdir( char *filenames,unsigned char parentIndex)
     // interrupt(0x21, 0, filenames, 0, 0);
 }
 
+void rm(char *filename,unsigned char parentIndex){
+    char map[512];
+    char files[1024];
+    char sectors[512];
+    char debugOutput[64];
+    int i=0;
+    int idx;
+    int linked=0;
+    int empty = 1;
+
+    interrupt(0x21,2,map,0x100,0);
+    interrupt(0x21, 2, files, 0x101, 0);
+    interrupt(0x21, 2, files+512, 0x102, 0);
+    interrupt(0x21,2,sectors,0x103,0);
+
+
+    idx = getFilePathIdx(parentIndex, filename);
+
+    if(files[idx*16+1]==0xFF)
+    {
+        interrupt(0x21,0,"It's a folder\r\n",0,0);
+        
+        for(i=0;i<64;i++){
+            if(files[i*16]==idx){
+                empty = 0;
+                break;
+            }
+        }
+
+        if(empty){
+            for(i=0;i<16;i++){
+                files[idx*16+i] = 0x0;
+            }
+        } else{
+            interrupt(0x21,0,"Folder is not empty, try using -r flag\r\n",0,0);
+        }
+
+    } 
+    else{
+        interrupt(0x21,0,"It's a file\r\n",0,0);
+        i=0;
+        while(i<64){
+            if(i!=idx && files[i*16+1]==files[idx*16+1] && files[i*16+2]!=0x0){
+                linked = 1;
+                break;
+            }
+            i++;
+        }
+        if(!linked)
+        {
+            interrupt(0x21,0,"File sector is safe to delete\r\n",0,0);
+            for(i=0;i<16;i++){
+                if(sectors[files[idx*16+1]*16+i] != 0x0 && map[sectors[files[idx*16+1]*16+i]] != 0x0){
+                    map[sectors[files[idx*16+1]*16+i]] = 0x0;
+                    sectors[files[idx*16+1]*16+i] = 0x0;
+                }
+            }
+        } 
+        else
+        {
+            interrupt(0x21,0,"Some file is linked to the same file\r\n",0,0);
+        }
+        for(i=0;i<16;i++){
+            files[idx*16+i] = 0x0;
+        }
+    }
+
+    interrupt(0x21,3,map,0x100,0);
+    interrupt(0x21, 3, files, 0x101, 0);
+    interrupt(0x21, 3, files+512, 0x102, 0);
+    interrupt(0x21,3,sectors,0x103,0);
+}
+
+void rmRecursive(char *filename,unsigned char parentIndex){
+    char files[1024];
+    int i=0;
+    int idx;
+    char childFilename[14];
+
+    interrupt(0x21, 2, files, 0x101, 0);
+    interrupt(0x21, 2, files+512, 0x102, 0);
+
+    idx = getFilePathIdx(parentIndex, filename);
+
+    for(i=0;i<64;i++){
+        if(files[i*16]==idx){
+            strslice(files+i*16,childFilename,2,16);
+            interrupt(0x21,0,childFilename,0,0);
+            interrupt(0x21,0,"\r\n",0,0);
+            rmRecursive(childFilename, idx);
+            clear(childFilename,14);
+        }
+    }
+
+    rm(filename,parentIndex);
+}
+
+void cpFiles(char * filenames, char parentIdx, char * src, char * dest)  {
+    int idx,res;
+    readFile(filenames,src,&res, parentIdx);
+    idx = getPathIdx(parentIdx, dest);
+    writeFile(filenames,src,&res, idx);
+}
+
+void cp(char * filenames, char parentIdx, char * src, char * dest) {
+    char files[1024];
+    int idxFolder,n,i,row,cnt;
+    char nama[14];
+    char curFile[14];
+    int isFolder = 0,folderExist = 0;
+    int itr = 0;
+    readSector(files, 0x101);
+    readSector(files+512, 0x102);
+
+    while(itr < 1024) {
+        strslice(files, curFile, i+2, i+16);
+        if(strcmp(dest, curFile, strlen(filenames)) && strlen(dest) == strlen(curFile)) {
+            if((unsigned char)files[i+1] == 0xFF) {
+                isFolder = 1;
+            }
+        }
+        itr+= 16;
+    }
+    
+    for(row = 0;row<64;row++) 
+    {
+        if((files[row*16] == parentIdx) && (files[row * 16 + 2] != 0x0) )
+        {
+            cnt++;
+        }
+    }
+    n = cnt;
+    idxFolder = getPathIdx(parentIdx, dest);
+    if(parentIdx == idxFolder)
+    {
+         interrupt(0x21,0,"asem",0,0);
+    }
+    while(i<0x40)
+    {
+        if(files[i * 0x10] == parentIdx && (strcmp(dest,files + (i * 16) + 2 ,14) == 1) )
+        {
+            folderExist = 1;
+            break;
+        }
+        i++;
+    }
+    if(folderExist)
+    {
+
+    }
+    else
+    {
+        mkdir(src,idxFolder);
+    }
+        
+    for(i = 0; i<n;i++) {
+        if(!isFolder) {
+            cpFiles(filenames,idxFolder,nama,src);
+        }
+        else {
+            cp(filenames,idxFolder,nama,src);
+        }
+    }
+
+}
+
+void cpRecursive(char * filenames, char parentIdx, char * src, char * dest){
+    char files[1024];
+    int i=0;
+    int idx;
+    char childFilename[14];
+
+    readSector(files, 0x101);
+    readSector(files+512, 0x102);
+
+    idx = getFilePathIdx(parentIdx, filenames);
+
+    for(i=0;i<64;i++){
+        if(files[i*16]==idx){
+            strslice(files+i*16,childFilename,2,16);
+            interrupt(0x21,0,childFilename,0,0);
+            interrupt(0x21,0,"\r\n",0,0);
+            cp(childFilename, idx, childFilename, dest);
+            clear(childFilename,14);
+        }
+    }
+}
 
 void shell(){
-    int i, j, commandCount, historyCount = -1, historyIdx, count, idx;
+    int i, j, commandCount, historyCount = -1, historyIdx = -1, count, idx;
     int tabPressed = 0, arrowPressed = 0;
     char input[128];
     char temp[128];
@@ -440,6 +682,7 @@ void shell(){
     int parentIdx = 0xFF;
     int targetDir;
     char dir[128];
+    char buf[512 * 16];
     int status;
         
     for(i = 0; i < 4; i++) {
@@ -488,8 +731,43 @@ void shell(){
             *(input+1) = 0xFF;
             strslice(temp, input+2, 0, strlen(temp));
             *(input+2+strlen(temp)) = 0x0;
-
             tabPressed = 1;
+        } else if((input[0] == 0x00 && input[1] != 0x00)) {
+
+            // arrow down
+            if(input[1] == 0x50)
+            {
+                if(historyIdx > -1 )
+                {
+                    historyIdx = historyIdx - 1;
+                }
+            }
+            else if(input[1] == 0x48)
+            {
+                if(historyIdx < historyCount)
+                {
+                    historyIdx = historyIdx + 1;
+                }
+            }
+            else 
+            {
+                interrupt(0x21, 0, "command not found", 0, 0);
+            }
+            if(historyIdx != -1)
+            {
+                interrupt(0x21, 0, history[historyIdx], 0, 0);
+                strslice(history[historyIdx], temp, 0, strlen(history[historyIdx]));
+                *(input) = 0xFF;
+                *(input+1) = 0xFF;
+                *(temp+strlen(history[historyIdx])) = 0x0;
+                strslice(temp, input + 2 ,0 , strlen(temp));
+                *(input+2+strlen(temp)) = 0x0;
+            }
+            else
+            {
+                clear(input,128);
+            }
+            arrowPressed = 1;
         } else {
             if(strcmp(command[0], "cd", strlen(command[0])) && strlen(command[0])==2){
                 targetDir = cd(parentIdx,command[1]);
@@ -501,6 +779,7 @@ void shell(){
             } else if(strcmp(command[0], "ls", strlen(command[0])) && strlen(command[0])==2 ){
                 ls((unsigned char)parentIdx);
             } else if(strcmp(command[0],"cat",strlen(command[0])) && strlen(command[0])==3 ){
+                // interrupt(0x21,0, command[1],0,0);
                 cat(command[1],parentIdx);
             } else if(strcmp(command[0],"mkdir",strlen(command[0])) && strlen(command[0])==5){
                 mkdir(command[1],parentIdx);
@@ -510,40 +789,66 @@ void shell(){
                 } else{
                     status = ln(command[1],command[2],0,parentIdx);
                 }
-            } else if(strcmp(command[0],"history",strlen(command[0])) && strlen(command[0])==7) {
-                for(i = 3; i >= 0; i--) {
-                    if(*(history[i]) == 0x0) {
-                        continue;
-                    } else {
-                        interrupt(0x21, 0, history[i], 0, 0);
-                        interrupt(0x21, 0, "\n\r", 0, 0);
-                    }
+            } 
+            else if(strcmp(command[0],"rm",strlen(command[0])) && strlen(command[0])==2) 
+            {
+                if(strcmp(command[1],"-r",strlen(command[1])) && strlen(command[1])==2){
+                    rmRecursive(command[2], parentIdx);
+                } else{
+                    rm(command[1],parentIdx);
                 }
-            }else{
+            }
+            else if(strcmp(command[0],"mv",strlen(command[0])) && strlen(command[0])==2) 
+            {
+                mv(command[1], command[2], parentIdx);
+            }
+            else if(strcmp(command[0],"cp",strlen(command[0])) && strlen(command[0])==2) 
+            {
+                if(strcmp(command[1],"-r",strlen(command[1])) && strlen(command[1])==2){
+                    cpRecursive(buf, parentIdx, command[2], command[3]);
+                } else{
+                    cp(buf, parentIdx, command[1], command[2]);
+                }
+            }
+            else{
                 interrupt(0x21,0, command[0],0,0);
                 interrupt(0x21,0," not found\r\n",0,0);
             }
 
             //simpen command ke history
+            // if(historyCount < 3) {
+            //     historyCount++;
+            //     strslice(input, history[historyCount], 0, strlen(input));
+            //     *(history[historyCount] + strlen(input)) = 0x0;
+            // } else {
+            //     historyIdx = 0;
+            //     while(historyIdx < 3) {
+            //         strslice(history[historyIdx+1], history[historyIdx], 0, strlen(history[historyIdx+1]));
+            //         *(history[historyIdx] + strlen(history[historyIdx+1])) = 0x0;
+            //         historyIdx++;
+            //     }
+            //     strslice(input, history[3], 0, strlen(input));
+            //     *(history[3] + strlen(input)) = 0x0;
+            //     historyCount = 3;
+            // }
+            // historyIdx=-1;
+            // tabPressed = 0;
+            // arrowPressed = 0;
+            for(i = 2 ;i>=0 ;i--)
+            {
+                strslice(history[i], history[i+1], 0, strlen(history[i]));
+                *(history[i+1]+strlen(history[i])) = 0x0;
+            }
             if(historyCount < 3) {
                 historyCount++;
-                strslice(input, history[historyCount], 0, strlen(input));
-                *(history[historyCount] + strlen(input)) = 0x0;
-            } else {
-                historyIdx = 0;
-                while(historyIdx < 3) {
-                    strslice(history[historyIdx+1], history[historyIdx], 0, strlen(history[historyIdx+1]));
-                    *(history[historyIdx] + strlen(history[historyIdx+1])) = 0x0;
-                    historyIdx++;
-                }
-                strslice(input, history[3], 0, strlen(input));
-                *(history[3] + strlen(input)) = 0x0;
-                historyCount = 3;
             }
-            
+            strslice(input, history[0], 0, strlen(input));
+            *(history[0]+strlen(input)) = 0x0;
+            historyIdx=-1;
             tabPressed = 0;
             arrowPressed = 0;
+            clear(input,128);
         }
-        // clear(input,128);
+        
     }
 }
