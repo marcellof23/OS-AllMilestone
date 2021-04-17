@@ -437,6 +437,7 @@ void rm(char *filename,unsigned char parentIndex){
     int i=0;
     int idx;
     int linked=0;
+    int empty = 1;
 
     interrupt(0x21,2,map,0x100,0);
     interrupt(0x21, 2, files, 0x101, 0);
@@ -450,9 +451,27 @@ void rm(char *filename,unsigned char parentIndex){
     interrupt(0x21,0,"\r\n",0,0);
     clear(debugOutput,64);
 
-    if(files[idx*16+1]==0xFF){
+    if(files[idx*16+1]==0xFF)
+    {
         interrupt(0x21,0,"It's a folder\r\n",0,0);
-    } else{
+        
+        for(i=0;i<64;i++){
+            if(files[i*16]==idx){
+                empty = 0;
+                break;
+            }
+        }
+
+        if(empty){
+            for(i=0;i<16;i++){
+                files[idx*16+i] = 0x0;
+            }
+        } else{
+            interrupt(0x21,0,"Folder is not empty, try using -r flag\r\n",0,0);
+        }
+
+    } 
+    else{
         interrupt(0x21,0,"It's a file\r\n",0,0);
         i=0;
         while(i<64){
@@ -462,11 +481,7 @@ void rm(char *filename,unsigned char parentIndex){
             }
             i++;
         }
-        if(linked)
-        {
-            interrupt(0x21,0,"Some file is linked to the same file\r\n",0,0);
-        } 
-        else
+        if(!linked)
         {
             interrupt(0x21,0,"File sector is safe to delete\r\n",0,0);
             for(i=0;i<16;i++){
@@ -475,15 +490,20 @@ void rm(char *filename,unsigned char parentIndex){
                     sectors[files[idx*16+1]*16+i] = 0x0;
                 }
             }
-            for(i=0;i<16;i++){
-                files[idx*16+i] = 0x0;
-            }
-            interrupt(0x21,3,map,0x100,0);
-            interrupt(0x21, 3, files, 0x101, 0);
-            interrupt(0x21, 3, files+512, 0x102, 0);
-            interrupt(0x21,3,sectors,0x103,0);
+        } 
+        else
+        {
+            interrupt(0x21,0,"Some file is linked to the same file\r\n",0,0);
+        }
+        for(i=0;i<16;i++){
+            files[idx*16+i] = 0x0;
         }
     }
+
+    interrupt(0x21,3,map,0x100,0);
+    interrupt(0x21, 3, files, 0x101, 0);
+    interrupt(0x21, 3, files+512, 0x102, 0);
+    interrupt(0x21,3,sectors,0x103,0);
 }
 
 
@@ -584,7 +604,6 @@ void shell(){
             arrowPressed = 1;
         } else {
             if(strcmp(command[0], "cd", strlen(command[0])) && strlen(command[0])==2){
-                interrupt(0x21,0, "Cd dipanggil hahaha\r\n",0,0);
                 targetDir = cd(parentIdx,command[1]);
                 if(targetDir != -1) {
                     parentIdx = targetDir;
@@ -592,10 +611,8 @@ void shell(){
                     interrupt(0x21,0, "No such directory\r\n",0,0);
                 }
             } else if(strcmp(command[0], "ls", strlen(command[0])) && strlen(command[0])==2 ){
-                interrupt(0x21,0, "Ls dipanggil hahaha\r\n",0,0);
                 ls((unsigned char)parentIdx);
             } else if(strcmp(command[0],"cat",strlen(command[0])) && strlen(command[0])==3 ){
-                interrupt(0x21,0, "Cat dipanggil hahaha\r\n",0,0);
                 // interrupt(0x21,0, command[1],0,0);
                 cat(command[1],parentIdx);
             } else if(strcmp(command[0],"mkdir",strlen(command[0])) && strlen(command[0])==5){
@@ -609,7 +626,11 @@ void shell(){
             } 
             else if(strcmp(command[0],"rm",strlen(command[0])) && strlen(command[0])==2) 
             {
-                rm(command[1],parentIdx);
+                if(strcmp(command[1],"-r",strlen(command[1])) && strlen(command[1])==2){
+                    interrupt(0x21,0,"rm recursive dipanggil\r\n",0,0);
+                } else{
+                    rm(command[1],parentIdx);
+                }
             }
             else if(strcmp(command[0],"history",strlen(command[0])) && strlen(command[0])==7) 
             {
