@@ -653,7 +653,7 @@ void cpFiles(char * filenames, char parentIdx, char * src, char * dest)  {
     int idx,res;
     readFile(filenames,src,&res, parentIdx);
     idx = getPathIdx(parentIdx, dest);
-    writeFiles(filenames,src,&res, idx);
+    writeFile(filenames,src,&res, idx);
 }
 
 void cp(char * filenames, char parentIdx, char * src, char * dest) {
