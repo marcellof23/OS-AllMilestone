@@ -14,6 +14,8 @@ void autoComplete(char *filename, char parentIdx);
 
 void messageArguments(char *argv,char parentIndex);
 
+void cpFiles(char * filenames, char parentIdx, char * src, char * dest);
+
 int main(){
     int i, j, commandCount, historyCount = -1, historyIdx = -1, count, idx;
     int tabPressed = 0, arrowPressed = 0;
@@ -24,6 +26,7 @@ int main(){
     int parentIdx = 0xFF;
     int targetDir;
     char dir[128];
+    char buf[512*16];
 
     char execStatus[16];
 

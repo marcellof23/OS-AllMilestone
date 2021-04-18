@@ -32,4 +32,6 @@ void mv(char *filename, char *target, int parentIdx);
 
 void shell();
 
+void cpFiles(char * filenames, char parentIdx, char * src, char * dest);
+
 #endif
