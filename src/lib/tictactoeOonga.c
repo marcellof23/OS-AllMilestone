@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-char square[] = { 'o', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
+char square[10] = { 'o', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
 
 int checkwin();
 void board();
@@ -8,15 +8,20 @@ void board();
 int main()
 {
     int player = 1, i = -1;
-
+    int execStatus;
     char choice[2];
     char mark;
-    char *winner;
-    char *playerStr;
+    char winner[128];
+    char playerStr[128];
     while (i == -1)
     {
         board();
-        player = (player % 2) ? 1 : 2;
+
+        if(mod(player,2) == 1) {
+            player = 1;
+        } else {
+            player = 2;
+        }
 
         itoa(player, 10, playerStr);
 
@@ -65,13 +70,17 @@ int main()
     
     board();
     
-    if (i == 1)
-        itoa(player, 10, winner);
-        interrupt(0x21, 0, "==>Player ", 0, 0); interrupt(0x21, 0, winner, 0, 0); interrupt(0x21, 0, " win\r\n", 0, 0);
-    else
+    if (i == 1){
+        itoa(player-1, 10, winner);
+        interrupt(0x21, 0, "==>Player ", 0, 0); interrupt(0x21, 0, winner, 0, 0); interrupt(0x21, 0, " win!!\r\n", 0, 0);
+    }
+    else 
         interrupt(0x21, 0, "==>Game draw\r\n", 0, 0);
+    
+    interrupt(0x21, 0, "Press Enter to Go back to shell!!\r\n", 0, 0);
+    interrupt(0x21, 1, choice, 0, 0);
 
-    return 0;
+    interrupt(0x21,0x0006,"shell",0x3000,execStatus);
 }
 
 /*********************************************
@@ -125,23 +134,55 @@ FUNCTION TO DRAW BOARD OF TIC TAC TOE WITH PLAYERS MARK
 
 void board()
 {
+    char tmp[2];
     interrupt(0x21, 0, "\n\n\tTic Tac Toe\r\n\n", 0, 0);
 
     interrupt(0x21, 0, "Player 1 (X)  -  Player 2 (O)\r\n\n\n", 0, 0);
 
-
     interrupt(0x21, 0, "     |     |     \r\n", 0, 0);
-    interrupt(0x21, 0, "  ", 0, 0); interrupt(0x21, 0, square[1], 0, 0); interrupt(0x21, 0, "  |  ", 0, 0); interrupt(0x21, 0, square[2], 0, 0); interrupt(0x21, 0, "  |  ", 0, 0); interrupt(0x21, 0, square[3], 0, 0); interrupt(0x21, 0, " \r\n", 0, 0);
+    interrupt(0x21, 0, "  ", 0, 0); 
+
+    tmp[0] = square[1];
+    tmp[1] = 0x0;
+    interrupt(0x21, 0, tmp, 0, 0); interrupt(0x21, 0, "  |  ", 0, 0); 
+
+    tmp[0] = square[2];
+    tmp[1] = 0x0;
+    interrupt(0x21, 0, tmp, 0, 0); interrupt(0x21, 0, "  |  ", 0, 0);
+    tmp[0] = square[3];
+    tmp[1] = 0x0; 
+    interrupt(0x21, 0, tmp, 0, 0); interrupt(0x21, 0, " \r\n", 0, 0);
 
     interrupt(0x21, 0, "_____|_____|_____\r\n", 0, 0);
     interrupt(0x21, 0, "     |     |     \r\n", 0, 0);
 
-    interrupt(0x21, 0, "  ", 0, 0); interrupt(0x21, 0, square[4], 0, 0); interrupt(0x21, 0, "  |  ", 0, 0); interrupt(0x21, 0, square[5], 0, 0); interrupt(0x21, 0, "  |  ", 0, 0); interrupt(0x21, 0, square[6], 0, 0); interrupt(0x21, 0, " \r\n", 0, 0);
+    tmp[0] = square[4];
+    tmp[1] = 0x0;
+    interrupt(0x21, 0, "  ", 0, 0); interrupt(0x21, 0, tmp, 0, 0); interrupt(0x21, 0, "  |  ", 0, 0); 
+    
+    tmp[0] = square[5];
+    tmp[1] = 0x0;
+    interrupt(0x21, 0, tmp, 0, 0); interrupt(0x21, 0, "  |  ", 0, 0); 
+    
+    tmp[0] = square[6];
+    tmp[1] = 0x0;
+    interrupt(0x21, 0, tmp, 0, 0); interrupt(0x21, 0, " \r\n", 0, 0);
 
     interrupt(0x21, 0, "_____|_____|_____\r\n", 0, 0);
     interrupt(0x21, 0, "     |     |     \r\n", 0, 0);
 
-    interrupt(0x21, 0, "  ", 0, 0); interrupt(0x21, 0, square[7], 0, 0); interrupt(0x21, 0, "  |  ", 0, 0); interrupt(0x21, 0, square[8], 0, 0); interrupt(0x21, 0, "  |  ", 0, 0); interrupt(0x21, 0, square[9], 0, 0); interrupt(0x21, 0, " \r\n", 0, 0);
+    tmp[0] = square[7];
+    tmp[1] = 0x0;
+    interrupt(0x21, 0, "  ", 0, 0); interrupt(0x21, 0, tmp, 0, 0); 
+    
+    tmp[0] = square[8];
+    tmp[1] = 0x0;
+    interrupt(0x21, 0, "  |  ", 0, 0); interrupt(0x21, 0, tmp, 0, 0); 
+    
+    tmp[0] = square[9];
+    tmp[1] = 0x0;
+    interrupt(0x21, 0, "  |  ", 0, 0); interrupt(0x21, 0, tmp, 0, 0); 
+    interrupt(0x21, 0, " \r\n", 0, 0);
 
     interrupt(0x21, 0, "     |     |     \r\n\n", 0, 0);
 }
