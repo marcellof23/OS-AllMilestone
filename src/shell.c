@@ -221,10 +221,31 @@ void messageArguments(char *argv,char parentIndex){
     char debugOutput[16];
     char trash = 0;
     int i=0;
+    int argc=2;
+
+    char arg[512];
+    clear(arg,512);
+
+    for(i=0;i<512;i++){
+        if(argv[i]==' '){
+            argc++;
+        }
+    }
+
+    arg[0] = argc;
+    arg[1] = ' ';
+
+    arg[2] = parentIndex;
+    arg[3] = ' ';
+
+    for(i=4;i<512;i++){
+        arg[i] = argv[i-4];
+    }
 
     interrupt(0x21,2,files,0x101,0);
     interrupt(0x21,2,files+512,0x102,0);
 
+    i=0;
     while(i<64){
         if(files[i*16]==0xFF && files[i*16+1]==0xFF && files[i*16+2]=='t' && files[i*16+3]=='m' && files[i*16+4]=='p' && files[i*16+5]==0x0){
             break;
@@ -232,7 +253,7 @@ void messageArguments(char *argv,char parentIndex){
         i++;
     }
 
-    interrupt(0x21,(i << 8) + 0x5,argv,"temp",&trash);
+    interrupt(0x21,(i << 8) + 0x5,arg,"~temp",&trash);
 }
 
 void cat(char * filenames, unsigned char parentIdx)

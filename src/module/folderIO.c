@@ -67,30 +67,6 @@ int getFilePathIdx(unsigned char parentIdx, char *filepath){
     return 999; // Shouldn't be possible to reach 999, only for debugging purposes
 }
 
-int SearchFilenames(char * files, char * filename, char parentIdx, int isFolder) 
-{
-  int idxFiles = 0;
-  while(idxFiles < 64) {
-    if(files[idxFiles * 0x10] == parentIdx) {
-      if(isFolder && (unsigned char)files[idxFiles * 0x10 + 1] == 0xFF) 
-      {
-        if(strcmp(filename,files + (0x10*idxFiles) + 2,14))
-          break;
-      }
-      else if(!isFolder && (unsigned char)files[idxFiles * 0x10 + 1] == 0xFF) 
-      {
-        if(strcmp(filename,files + (0x10*idxFiles) + 2,14))
-          break;
-      }
-    }
-    idxFiles++;
-  } 
-  if(idxFiles == 64)
-  {
-    return -1;
-  }
-  else 
-  {
-    return idxFiles;
-  }
+void getArguments(char *argv){
+    
 }
