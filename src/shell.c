@@ -107,69 +107,74 @@ void cwd(int pathIdx, char *dir) {
     *(dir+dirindex+2) = 0x0;
 }
 
-int getPathIdx(int parentIdx, char *filename) { //Get Index file di files
-    char file[512 * 2];
-    char currFile[14];
-    int i;
-    interrupt(0x21, 2, file, 0x101, 0);
-    interrupt(0x21, 2, file + 512, 0x102, 0);
-
-    if(*(filename) == '~') {
-        return 0xFF;
-    } else if(*(filename) == '.' && *(filename+1) == '.') {
-        if((unsigned char)parentIdx == 0xFF) {
-            return -1;
-        } else {
-            return file[parentIdx << 4];
-        }
-    } else if(*(filename) == '.') {
-        return parentIdx;
-    } else {
-        i = 0;
-        while(i < 1024) {
-            strslice(file, currFile, i+2, i+16);
-            if(strcmp(filename, currFile, strlen(filename)) && (unsigned char)parentIdx == file[i]) {
-                if((unsigned char)file[i+1] == 0xFF) {
-                    return div(i,16);
-                } else {
-                    return -1;
-                }
+int cd(int currParentIdx, char *dirPath) {
+    char pathList[64][64];
+    int parentIdx;
+    int i, j, idx, depth;
+    i = 0;
+    idx = 0;
+    depth = 0;
+    
+    while(*(dirPath+i) != 0x0) {
+        if(*(dirPath+i) == '/') {
+            while(idx < 14) {
+                pathList[depth][idx] = 0x0;
+                idx++;
             }
-            i += 16;
+            idx = 0;
+            depth++;
+        } else {
+            pathList[depth][idx] = *(dirPath+i);
+            idx++;
         }
-        return -1;
+        i++;
     }
+    
+    while(idx < 14) {
+        pathList[depth][idx] = 0x0;
+        idx++;
+    }
+
+    parentIdx = currParentIdx;
+    for(j = 0; j <= depth; j++) {
+        parentIdx = getPathIdx(parentIdx, pathList[j]);
+        if(parentIdx == -1) {
+            break;
+        }
+    }
+    return parentIdx;
 }
 
-int getFilePathIdx(unsigned char parentIdx, char *filepath){
-    char file[1024];
-    char currFile[14];
-    char pathchunks[32][64];
-    int i,j;
-    int totalchunks = strsplit(filepath,'/', pathchunks);
-    int fileidxlooper = parentIdx;
-
-    interrupt(0x21, 2, file, 0x101, 0);
-    interrupt(0x21, 2, file + 512, 0x102, 0);
-    for(i=0;i<totalchunks;i++){
-        if(fileidxlooper == -1){
-            return -1;
-        }
-        if(i==totalchunks-1){ //Finale
-            for(j=0;j<1024;j+=16){
-                if(file[j]==fileidxlooper){ // && (unsigned char)file[j+1]!=0xFF
-                    strslice(file,currFile,j+2,j+16);
-                    if(strcmp(currFile,pathchunks[i],strlen(currFile)) && strlen(currFile)==strlen(pathchunks[i])){
-                        return div(j,16);
-                    }
-                }
-            }
-            return -2;
-        } else{ //Folder
-            fileidxlooper = getPathIdx(fileidxlooper, pathchunks[i]);
-        }
+void ls(unsigned char parentIndex)
+{
+  char files[1024];
+  char listFiles[64];
+  char name[14];
+  int i = 0,j = 0,total;
+  interrupt(0x21, 2, files, 0x101, 0);
+  interrupt(0x21, 2, files+512, 0x102, 0);
+  while(i<64)
+  {
+    if(files[i*0x10] == parentIndex && files[i*0x10 + 2] != '\0')
+    {
+      *(listFiles+j) = i;
+      j++;  
     }
-    return 999; // Shouldn't be possible to reach 999, only for debugging purposes
+    ++i;
+  }
+  total = j;
+  for(i = 0; i<total;i++)
+  {
+    clear(name,14);
+    for(j=0;j<14;j++)
+    {
+      name[j] = files[listFiles[i]  * 0x10 + 2 + j];
+    }
+
+    interrupt(0x21, 0, name, 0, 0);
+    interrupt(0x21, 0, "\n", 0, 0);
+    interrupt(0x21, 0, "\r", 0, 0);
+  }
 }
 
 void autoComplete(char *filename, char parentIdx) {
