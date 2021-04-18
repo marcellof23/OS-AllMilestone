@@ -1,3 +1,7 @@
+void rm(char *filename,unsigned char parentIndex);
+
+void rmRecursive(char *filename,unsigned char parentIndex);
+
 int main(){
     char execStatus[16];
     interrupt(0x21,0,"rm dipanggil\r\n",0,0);

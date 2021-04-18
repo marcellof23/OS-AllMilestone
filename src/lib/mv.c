@@ -1,3 +1,5 @@
+void mv(char *filename, char *target, int parentIdx);
+
 int main(){
     char execStatus[16];
     interrupt(0x21,0,"mv dipanggil\r\n",0,0);

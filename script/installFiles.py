@@ -15,7 +15,6 @@ def createFolder(foldername):
             files[i*16] = 0xFF
             files[i*16+1] = 0xFF
             for j in range(len(foldername)):
-                print(ord(foldername[j]))
                 files[j+i*16+2] = ord(foldername[j])
             system[257*512:259*512] = files
             break

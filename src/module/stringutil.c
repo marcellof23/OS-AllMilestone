@@ -1,21 +1,4 @@
-#include "utilities.h"
-
-int div(int x,int y)
-{
-    int res;
-    res = 0;
-    while(x>=y)
-    {
-        x-=y;
-        res++;
-    }
-    return res;
-}
-
-int mod(int x,int y) //Returns x mod y
-{
-    return x - y*div(x,y);
-}
+#include "stringutil.h"
 
 void itoa(int num, int basis, char * output) 
 { 
@@ -161,4 +144,69 @@ int strsplit(char *input,char param,char ptr[][64])
         }
     }
     return commandcount;
+}
+
+void printString(char *string){
+  int i= 0;
+	while (*(string+i) != 0x00) {
+		interrupt(0x10, 0x0e00 + *(string+i), 0x000F, 0, 0);
+		i++;
+	}
+}
+
+void readString(char *string){
+  int input, i, j, idx, test, copyIdx;
+  int high, low;
+  i = 0;
+  input = interrupt(0x16, 0x0000, 0, 0, 0);
+
+  //Check payload, if there is payload then update string first
+  if(string[0] == 0xFF && string[1] == 0xFF) {
+    copyIdx = strlen(string) - 2;
+    while(i < copyIdx) {
+      string[i] = string[i+2];
+      i++;
+    }
+  }
+
+  high = input >> 8;
+  low = input & 0x00FF; 
+  
+  while(low != 0x0d && low != 0x09 && high != 0x48 && high != 0x50) {
+    if(low != 0x08){
+      *(string+i) = low;
+      i++;
+
+      interrupt(0x10, 0x0e00 + low, 0, 0, 0);
+    } else if(i > 0){
+      interrupt(0x10, 0x0e00 + low, 0, 0, 0);
+      interrupt(0x10, 0x0e00 + 0x0, 0, 0, 0);
+      interrupt(0x10, 0x0e00 + low, 0, 0, 0);
+      *(string+i-1) = 0x0;
+      i--;
+    }
+    input = interrupt(0x16, 0x0000, 0, 0, 0);
+    high = input >> 8;
+    low = input & 0x00FF;
+  }
+
+  if(low == 0x00) {
+    while(i > 0) {
+      interrupt(0x10, 0x0e00 + 0x08, 0, 0, 0);
+      interrupt(0x10, 0x0e00 + 0x0, 0, 0, 0);
+      interrupt(0x10, 0x0e00 + 0x08, 0, 0, 0);
+      *(string+i-1) = 0x0;
+      i--;
+    }
+    string[0] = 0x00;
+    string[1] = high;
+    return;
+  } else if(low == 0x09) {
+    *(string+i) = 0x09;
+    i++;
+    *(string+i) = 0x0;
+    return;
+  }
+
+  *(string+i) = 0x0;
 }

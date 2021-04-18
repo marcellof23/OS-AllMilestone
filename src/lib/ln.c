@@ -1,3 +1,5 @@
+int ln(char *filepath, char *filelink,int soft,unsigned char parentIndex);
+
 int main(){
     char execStatus[16];
     interrupt(0x21,0,"ln dipanggil\r\n",0,0);

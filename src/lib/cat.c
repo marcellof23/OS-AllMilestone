@@ -1,3 +1,5 @@
+void cat(char * filenames,unsigned char dir);
+
 int main(){
     char execStatus[16];
     interrupt(0x21,0,"cat dipanggil\r\n",0,0);

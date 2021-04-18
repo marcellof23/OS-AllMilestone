@@ -1,4 +1,5 @@
-#include "utilities.h"
+#include "module/math.h"
+#include "module/stringutil.h"
 
 void cwd(int pathIdx,char *dir);
 
@@ -13,21 +14,13 @@ int getPathIdx(int parentIdx, char *filename);
 // pathidx : file found in files, 0 <= pathidx <= div(files sector size,16)
 int getFilePathIdx(unsigned char parentIdx, char *filepath);
 
-int ln(char *filepath, char *filelink,int soft,unsigned char parentIndex);
-
 void ls(unsigned char parentIndex);
-
-void cat(char * filenames,unsigned char dir);
 
 void mkdir( char *filenames,unsigned char parentIndex);
 
 void autoComplete(char *filename, char parentIdx);
 
-void rm(char *filename,unsigned char parentIndex);
-
-void rmRecursive(char *filename,unsigned char parentIndex);
-
-void mv(char *filename, char *target, int parentIdx);
+void messageArguments(char *argv,char parentIndex);
 
 int main(){
     int i, j, commandCount, historyCount = -1, historyIdx = -1, count, idx;
@@ -39,7 +32,6 @@ int main(){
     int parentIdx = 0xFF;
     int targetDir;
     char dir[128];
-    int status;
 
     char execStatus[16];
         
@@ -66,135 +58,9 @@ int main(){
         } else if(strcmp(command[0],"ls",strlen(command[0])) && strlen(command[0])==2){
             ls(parentIdx);
         } else{
+            messageArguments(input,parentIdx);
             interrupt(0x21,0x0006,input,0x3000,execStatus);
         }
-
-        // if(*(command[commandCount-1]+strlen(command[commandCount-1])-1) == 0x09) {
-
-        //     //catet posisi terakhir input
-        //     count = 0;
-        //     for(i = 0; i < commandCount; i++) {
-        //         count += strlen(command[i]);
-        //     }
-        //     count += commandCount - 2;
-
-        //     //catet posisi terakhir command
-        //     j = strlen(command[commandCount-1])-1;
-
-        //     *(command[commandCount-1]+strlen(command[commandCount-1])-1) = 0x0;
-        //     autoComplete(command[commandCount-1], parentIdx);
-            
-        //     //update input
-        //     i = count;
-        //     while(j < strlen(command[commandCount-1])) {
-        //         *(input+i) = *(command[commandCount-1]+j);
-        //         i++;
-        //         j++;
-        //     }
-
-        //     *(input+i) = 0x0;
-        //     for(idx = 0; idx < strlen(input); idx++) {
-        //         *(temp+idx) = *(input+idx);
-        //     }
-        //     *(temp+strlen(input)) = 0x0;
-
-        //     //overwrite input, add payload to input[0] and input[1]
-        //     *(input) = 0xFF;
-        //     *(input+1) = 0xFF;
-        //     strslice(temp, input+2, 0, strlen(temp));
-        //     *(input+2+strlen(temp)) = 0x0;
-        //     tabPressed = 1;
-        // } else if((input[0] == 0x00 && input[1] != 0x00)) {
-
-        //     // arrow down
-        //     if(input[1] == 0x50)
-        //     {
-        //         if(historyIdx > -1 )
-        //         {
-        //             historyIdx = historyIdx - 1;
-        //         }
-        //     }
-        //     else if(input[1] == 0x48)
-        //     {
-        //         if(historyIdx < historyCount)
-        //         {
-        //             historyIdx = historyIdx + 1;
-        //         }
-        //     }
-        //     else 
-        //     {
-        //         interrupt(0x21, 0, "command not found", 0, 0);
-        //     }
-        //     if(historyIdx != -1)
-        //     {
-        //         interrupt(0x21, 0, history[historyIdx], 0, 0);
-        //         strslice(history[historyIdx], temp, 0, strlen(history[historyIdx]));
-        //         *(input) = 0xFF;
-        //         *(input+1) = 0xFF;
-        //         *(temp+strlen(history[historyIdx])) = 0x0;
-        //         strslice(temp, input + 2 ,0 , strlen(temp));
-        //         *(input+2+strlen(temp)) = 0x0;
-        //     }
-        //     else
-        //     {
-        //         clear(input,128);
-        //     }
-        //     arrowPressed = 1;
-        // } else {
-        //     if(strcmp(command[0], "cd", strlen(command[0])) && strlen(command[0])==2){
-        //         targetDir = cd(parentIdx,command[1]);
-        //         if(targetDir != -1) {
-        //             parentIdx = targetDir;
-        //         } else {
-        //             interrupt(0x21,0, "No such directory\r\n",0,0);
-        //         }
-        //     } else if(strcmp(command[0], "ls", strlen(command[0])) && strlen(command[0])==2 ){
-        //         ls((unsigned char)parentIdx);
-        //     } else if(strcmp(command[0],"cat",strlen(command[0])) && strlen(command[0])==3 ){
-        //         cat(command[1],parentIdx);
-        //     } else if(strcmp(command[0],"mkdir",strlen(command[0])) && strlen(command[0])==5){
-        //         mkdir(command[1],parentIdx);
-        //     } 
-            // else if(strcmp(command[0],"ln",strlen(command[0])) && strlen(command[0])==2){
-            //     if(strcmp(command[1],"-s",strlen(command[1])) && strlen(command[1])==2){
-            //         status = ln(command[2],command[3],1,parentIdx);
-            //     } else{
-            //         status = ln(command[1],command[2],0,parentIdx);
-            //     }
-            // } 
-            // else if(strcmp(command[0],"rm",strlen(command[0])) && strlen(command[0])==2) 
-            // {
-            //     if(strcmp(command[1],"-r",strlen(command[1])) && strlen(command[1])==2){
-            //         rmRecursive(command[2], parentIdx);
-            //     } else{
-            //         rm(command[1],parentIdx);
-            //     }
-            // }
-            // else if(strcmp(command[0],"mv",strlen(command[0])) && strlen(command[0])==2) 
-            // {
-            //     mv(command[1], command[2], parentIdx);
-            // }
-            // else{
-            //     interrupt(0x21,0, command[0],0,0);
-            //     interrupt(0x21,0," not found\r\n",0,0);
-            // }
-
-            // for(i = 2 ;i>=0 ;i--)
-            // {
-            //     strslice(history[i], history[i+1], 0, strlen(history[i]));
-            //     *(history[i+1]+strlen(history[i])) = 0x0;
-            // }
-            // if(historyCount < 3) {
-            //     historyCount++;
-            // }
-            // strslice(input, history[0], 0, strlen(input));
-            // *(history[0]+strlen(input)) = 0x0;
-            // historyIdx=-1;
-            // tabPressed = 0;
-            // arrowPressed = 0;
-            // clear(input,128);
-        // }
-        
     }
     return 0;
 }
@@ -412,4 +278,12 @@ void autoComplete(char *filename, char parentIdx) {
         }
         i += 16;
     }
+}
+
+void messageArguments(char *argv,char parentIndex){
+    char buffer[512 * 8];
+    char trash = 0;
+    clear(buffer,512 * 8);
+
+    interrupt(0x21,0x0005,argv,"temp",&trash);
 }
