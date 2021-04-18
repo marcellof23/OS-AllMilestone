@@ -750,7 +750,7 @@ void cpRecursive(char * filenames, char parentIdx, char * src, char * dest){
             //         break;
             //     files[y * 0x10 + x + 2] = name[x];
             // }
-            interrupt(0x21,0,name,0,0);
+            // interrupt(0x21,0,name,0,0);
             cpRecursive(filenames,copyName,name,dest);
         }
         else
