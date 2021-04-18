@@ -265,7 +265,7 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
       }
       if((idxFolder = SearchFilenames(files,tmp,idxFolder,1)) == -1)
       {
-        *sectors = -4;
+        (*sectors) = -4;
         return;
       }
       clear(tmp,100);
@@ -275,7 +275,7 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
   }
   if(SearchFilenames(files,path+previousPar,idxFolder,0) != -1 || SearchFilenames(files,path+previousPar,idxFolder,1) != -1 )
   {
-    *sectors = -1;
+    (*sectors)  = -1;
     return;
   }
   for(i = 0;i<0x200;i++)
@@ -285,7 +285,7 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
   }
   if(i == 0x200)
   {
-    *sectors = -3;
+    (*sectors)  = -3;
     return;
   }
   emptySector = i;
@@ -299,13 +299,13 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
   }
   if(i==64) 
   {
-    *sectors = -2;
+    (*sectors)  = -2;
     return;
   }
   emptyFile = i;
   i = 0;
   while(i<32) {
-    if(sectorsFile[i * 0x10] == '\0')
+    if(sectorsFile[i * 0x10] == 0x0)
     {
       break;
     }
@@ -313,7 +313,7 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
   }
   if(i==32) 
   {
-    *sectors = -3;
+    (*sectors)  = -3;
     return;
   }
   secIdx = i;
@@ -338,20 +338,20 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
   i = 0;
   while(buffer[i * 512] != '\0')
   {
-    writeSector(buffer + i * 512, emptySector);
+    writeSector(buffer + (i * 512), emptySector);
     sectorsFile[secIdx * 16 + i] = emptySector;
     map[emptySector] = 0xFF;
-    while((unsigned char)map[emptySector] == 0xFF)
+    do 
     {
       emptySector++;
-    }
+    }while((unsigned char)map[emptySector] == 0xFF);
     i++;
   }
-  writeSector(map,256);
-  writeSector(files,257);
-  writeSector(files+0x200,258);
-  writeSector(sectorsFile,259);
-  *sectors = 1;
+  writeSector(map,0x100);
+  writeSector(files,0x101);
+  writeSector(files+0x200,0x101);
+  writeSector(sectorsFile,0x102);
+  (*sectors)  = 1;
 }
 // void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
 // {
