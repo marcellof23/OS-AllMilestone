@@ -66,7 +66,7 @@ int main(){
         } else if(strcmp(command[0],"ls",strlen(command[0])) && strlen(command[0])==2){
             ls(parentIdx);
         } else{
-            interrupt(0x21,0xFF06,input,0x3000,execStatus);
+            interrupt(0x21,0x0006,input,0x3000,execStatus);
         }
 
         // if(*(command[commandCount-1]+strlen(command[commandCount-1])-1) == 0x09) {
