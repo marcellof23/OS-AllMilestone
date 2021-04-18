@@ -15,7 +15,6 @@ void readSector(char *buffer,int sector);
 void writeSector(char *buffer,int sector);
 void readFile(char *buffer, char *path, int *sectors, char parentIndex);
 void writeFile(char *buffer, char *path, int *sectors, char parentIndex);
-void writeFiles(char *buffer, char *path, int *sectors, char parentIndex);
 void executeProgram(char *filename, int segment, int *success, char parentIndex);
 
 
@@ -244,8 +243,6 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
   char sectorsFile[512];
   char tmp[100];
   int i, j, filenamePar,previousPar,idxFolder;
-  int * finish;
-  int *fIdx;
   int secIdx, emptySector, emptyFile;
 
   readSector(map,0x100);
