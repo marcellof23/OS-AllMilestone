@@ -16,6 +16,7 @@ int main()
     while (i == -1)
     {
         board();
+        clear(choice, 2);
 
         if(mod(player,2) == 1) {
             player = 1;
@@ -77,6 +78,8 @@ int main()
     else 
         interrupt(0x21, 0, "==>Game draw\r\n", 0, 0);
     
+    clear(choice, 2);
+
     interrupt(0x21, 0, "Press Enter to Go back to shell!!\r\n", 0, 0);
     interrupt(0x21, 1, choice, 0, 0);
 

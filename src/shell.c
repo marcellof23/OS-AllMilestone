@@ -16,6 +16,10 @@ void autoComplete(char *filename, char parentIdx);
 
 void messageArguments(char *argv,char parentIndex);
 
+void shellState(char currParentIdx);
+
+void getShellState(char *argv);
+
 int main(){
     int i, j, commandCount, historyCount = -1, historyIdx = -1, count, idx;
     int tabPressed = 0, arrowPressed = 0;
@@ -26,14 +30,21 @@ int main(){
     int parentIdx = 0xFF;
     int targetDir;
     char dir[128];
+    char currShellState[8192];
+    char debugOutput[512];
 
     char execStatus[16];
 
     clear(input,512);
+    clear(currShellState, 8192);
         
     for(i = 0; i < 4; i++) {
         clear(history[i], 128);
     }
+
+    getShellState(currShellState);
+
+    parentIdx = currShellState[0];
 
     while(1){
         if(!tabPressed && !arrowPressed) {
@@ -50,6 +61,7 @@ int main(){
             targetDir = cd(parentIdx,command[1]);
             if(targetDir != -1) {
                 parentIdx = targetDir;
+                shellState((unsigned char) targetDir);
             } else {
                 interrupt(0x21,0, "No such directory\r\n",0,0);
             }
@@ -254,6 +266,57 @@ void messageArguments(char *argv,char parentIndex){
     }
 
     interrupt(0x21,(i << 8) + 0x5,arg,"~temp",&trash);
+}
+
+void shellState(char currParentIndex){
+    char files[1024];
+    char debugOutput[16];
+    char trash = 0;
+    int i=0;
+
+    char arg[512];
+    clear(arg,512);
+
+    arg[0] = currParentIndex;
+    itoa(currParentIndex, 16, debugOutput);
+    interrupt(0x21, 0, debugOutput, 0, 0);
+
+    interrupt(0x21,2,files,0x101,0);
+    interrupt(0x21,2,files+512,0x102,0);
+
+    i=0;
+    while(i<64){
+        if(files[i*16]==0xFF && files[i*16+1]==0xFF && files[i*16+2]=='t' && files[i*16+3]=='m' && files[i*16+4]=='p' && files[i*16+5]==0x0){
+            break;
+        }
+        i++;
+    }
+
+    interrupt(0x21,(i << 8) + 0x5,arg,"~shell",&trash);
+}
+
+void getShellState(char *argv) {
+    char files[1024];
+    char debugOutput[16];
+    int flag = 0;
+    int i=0;
+
+    interrupt(0x21,2,files,0x101,0);
+    interrupt(0x21,2,files+512,0x102,0);
+
+    i=0;
+    while(i<64){
+        if(files[i*16]==0xFF && files[i*16+1]==0xFF && files[i*16+2]=='t' && files[i*16+3]=='m' && files[i*16+4]=='p' && files[i*16+5]==0x0){
+            break;
+        }
+        i++;
+    }
+
+    interrupt(0x21,(i << 8) + 0x4,argv,"~shell",&flag);
+
+    if(flag == -1) {
+        argv[0] = 0xFF;
+    }
 }
 
 void cat(char * filenames, unsigned char parentIdx)
