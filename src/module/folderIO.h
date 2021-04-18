@@ -9,5 +9,6 @@ int getPathIdx(int parentIdx, char *filename);
 // -3 : Files sector is full
 // pathidx : file found in files, 0 <= pathidx <= div(files sector size,16)
 int getFilePathIdx(unsigned char parentIdx, char *filepath);
+int SearchFilenames(char * files, char * filename, char parentIdx, int isFolder);
 
 #endif

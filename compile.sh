@@ -11,7 +11,7 @@ bcc -ansi -c -o ./output/folderIO.o ./src/module/folderIO.c
 bcc -ansi -c -o ./output/shell.o ./src/shell.c
 
 nasm -f as86 ./asm/kernel.asm -o ./output/kernel_asm.o
-ld86 -o ./output/kernel -d ./output/kernel.o ./output/kernel_asm.o ./output/math.o ./output/stringutil.o ./output/fileIO.o
+ld86 -o ./output/kernel -d ./output/kernel.o ./output/kernel_asm.o ./output/math.o ./output/stringutil.o ./output/fileIO.o ./output/folderIO.o
 
 nasm -f as86 ./asm/lib.asm -o ./output/lib_asm.o
 # ld86 -o ./output/lib -d ./output/lib_asm.o

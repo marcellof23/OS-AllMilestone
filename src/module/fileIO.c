@@ -1,4 +1,5 @@
 #include "fileIO.h"
+#include "folderIO.h"
 #include "math.h"
 #include "stringutil.h"
 
@@ -45,27 +46,92 @@ void readFile(char *buffer, char *path, int *result, char parentIndex) //      r
   }
 }
 
-void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
+void writeFile(char *buffer, char *path, int *sectors, char parentIndex) 
 {
   char map[512];
   char files[1024];
   char sectorsFile[512];
-  char debugOutput[512];
 
-  int i=0;
+  char debugOutput[128];
+  char crlf[3];
+
+  char cache[512];
+
+  int i,j,k,sectorsNeeded , sectorsAvailable,sectorIndex, filesIndex;
+
+  int z=0;
+
+  crlf[0] = '\r'; crlf[1] = '\n'; crlf[2] = '\0'; 
+
+  filesIndex = -1;
+
+  sectorsAvailable = 0;
 
   readSector(map,0x100);
   readSector(files,0x101);
   readSector(files+0x200,0x102);
   readSector(sectorsFile,0x103);
 
+  i=0;
   while(buffer[i]!=0x0){
     i++;
   }
 
-  // itoa(i,10,debugOutput);
+  sectorsNeeded = div(i,512) + 1;
+  for(i=0;i<256;i++){
+    if(map[i]!=0x0){
+      sectorsAvailable++;
+    }
+  }
 
-  // printString(debugOutput);
+  if(sectorsAvailable>=sectorsNeeded){
+    for(i=0;i<64;i++){
+      if(isempty(files+i*16, 16)){
+        filesIndex = i;
+        break;
+      }
+    }
+    if(filesIndex!=-1){
+      for(i=0;i<32;i++){
+        if(isempty(sectorsFile+i*16,16)){
+          sectorIndex = i;
+          j = 0;
+          k = 0;
+
+          while(j<256 && k<sectorsNeeded){
+            if(map[j]==0x0){
+              map[j] = 0xFF;
+              sectorsFile[sectorIndex*16+k] = j;
+
+              readSector(cache, j);
+              for(z=0;z<512;z++){
+                  cache[z] = buffer[k*512+z];
+              }
+              writeSector(cache, j);
+
+              k++;
+            }
+            j++;
+          }
+
+          files[filesIndex*16] = parentIndex;
+          files[filesIndex*16+1] = sectorIndex;
+
+          j=2;
+          while(j<16 && path[j-2]!=0x0){
+            files[filesIndex*16+j] = path[j-2];
+            j++;
+          }
+          break;
+        }
+      }
+    } else{
+      interrupt(0x21,0,"No slot for file\r\n",0,0);
+    }
+  }
+  else{
+    interrupt(0x21,0,"Not enough sectors\r\n",0,0);
+  }
 
   writeSector(map,256);
   writeSector(files,257);
