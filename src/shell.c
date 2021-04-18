@@ -16,6 +16,8 @@ void autoComplete(char *filename, char parentIdx);
 
 void messageArguments(char *argv,char parentIndex);
 
+void cpFiles(char * filenames, char parentIdx, char * src, char * dest);
+
 int main(){
     int i, j, commandCount, historyCount = -1, historyIdx = -1, count, idx;
     int tabPressed = 0, arrowPressed = 0;
@@ -26,6 +28,7 @@ int main(){
     int parentIdx = 0xFF;
     int targetDir;
     char dir[128];
+    char buf[512*16];
 
     char execStatus[16];
 
@@ -57,6 +60,9 @@ int main(){
             ls(parentIdx);
         } else if(strcmp(command[0],"cat",strlen(command[0])) && strlen(command[0])==3){
             cat(command[1],parentIdx);
+        } 
+        else if (strcmp(command[0],"cp",strlen(command[0])) && strlen(command[0])==2){
+            cpFiles(buf, parentIdx, command[1], command[2]);
         } 
         else{
             messageArguments(input,parentIdx);
@@ -296,4 +302,11 @@ void cat(char * filenames, unsigned char parentIdx)
         }       
     }
     interrupt(0x21, 0, "file tidak ditemukan\r\n", 0, 0);
+}
+
+void cpFiles(char * filenames, char parentIdx, char * src, char * dest)  {
+    int idx,res;
+    interrupt(0x21, 4 + 0x100*parentIdx, filenames, src, &res);
+    idx = getPathIdx(parentIdx, dest);
+    interrupt(0x21, 5 + 0x100*idx, filenames, src, &res);
 }
