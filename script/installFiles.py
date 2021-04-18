@@ -10,11 +10,15 @@ def createFolder(foldername):
         map = system[256*512:257*512]
         files = system[257*512:259*512]
         sector = system[259*512:260*512]
-    files[0] = 0xFF
-    files[1] = 0xFF
-    for i in range(len(foldername)):
-        files[i+2] = ord(foldername[i])
-    system[257*512:259*512] = files
+    for i in range(64):
+        if(files[i*16:(i+1)*16]==bytearray(b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')):
+            files[i*16] = 0xFF
+            files[i*16+1] = 0xFF
+            for j in range(len(foldername)):
+                print(ord(foldername[j]))
+                files[j+i*16+2] = ord(foldername[j])
+            system[257*512:259*512] = files
+            break
 
     with open("./output/system.img", 'wb') as f:
         f.write(bytes(system))
@@ -94,5 +98,6 @@ def loadfile(filepath):
 #     loadfile(sys.argv[i])
 
 createFolder("bin")
+createFolder("tmp")
 for i in range(1,len(sys.argv)):
     loadfile(sys.argv[i])
