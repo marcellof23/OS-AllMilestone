@@ -63,9 +63,9 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
     i++;
   }
 
-  itoa(i,10,debugOutput);
+  // itoa(i,10,debugOutput);
 
-  printString(debugOutput);
+  // printString(debugOutput);
 
   writeSector(map,256);
   writeSector(files,257);

@@ -208,8 +208,25 @@ void autoComplete(char *filename, char parentIdx) {
 }
 
 void messageArguments(char *argv,char parentIndex){
-    char buffer[512 * 8];
+    char files[1024];
+    char debugOutput[16];
     char trash = 0;
-    clear(buffer,512 * 8);
-    interrupt(0x21,0x0005,argv,"temp",&trash);
+    int i=0;
+
+    interrupt(0x21,2,files,0x101,0);
+    interrupt(0x21,2,files+512,0x102,0);
+
+    interrupt(0x21,0,"HAHA\r\n",0,0);
+
+    while(i<64){
+        if(files[i*16]==0xFF && files[i*16+1]==0xFF && files[i*16+2]=='t' && files[i*16+3]=='m' && files[i*16+4]=='p' && files[i*16+5]==0x0){
+            itoa(i, 10, debugOutput);
+            interrupt(0x21,0,debugOutput,0,0);
+            interrupt(0x21,0,"\r\n",0,0);
+            break;
+        }
+        i++;
+    }
+
+    interrupt(0x21,(i << 8) + 0x5,argv,"temp",&trash);
 }

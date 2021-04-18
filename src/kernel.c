@@ -26,7 +26,13 @@ int main () {
 
 
 void handleInterrupt21 (int AX, int BX, int CX, int DX){
+  char invalid[32];
   char AL, AH;
+
+  clear(invalid,32);
+
+  invalid[0] = 'I';invalid[1] = 'n';invalid[2] = 'v';invalid[3] = 'a';invalid[4] = 'l';invalid[5] = 'i';invalid[6] = 'd';
+
   AL = (char) (AX);
   AH = (char) (AX >> 8);
   switch (AL) {
@@ -52,7 +58,7 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX){
       executeProgram(BX, CX, DX, AH);
       break;
     default:
-      printString("Invalid interrupt");
+      interrupt(0x21,0,invalid,0,0);
   }
 }
 
