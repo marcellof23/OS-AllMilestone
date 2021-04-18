@@ -4,8 +4,6 @@
 
 void cwd(int pathIdx,char *dir);
 
-void cat(char * filenames,unsigned char dir);
-
 int cd(int currParentIdx, char *dirPath);
 
 void ls(unsigned char parentIndex);
@@ -20,6 +18,8 @@ void shellState(char currParentIdx);
 
 void getShellState(char *argv);
 
+void cpFiles(char * filenames, char parentIdx, char * src, char * dest);
+
 int main(){
     int i, j, commandCount, historyCount = -1, historyIdx = -1, count, idx;
     int tabPressed = 0, arrowPressed = 0;
@@ -32,6 +32,7 @@ int main(){
     char dir[128];
     char currShellState[8192];
     char debugOutput[512];
+    char buf[512*16];
 
     char execStatus[16];
 
@@ -67,9 +68,7 @@ int main(){
             }
         } else if(strcmp(command[0],"ls",strlen(command[0])) && strlen(command[0])==2){
             ls(parentIdx);
-        } else if(strcmp(command[0],"cat",strlen(command[0])) && strlen(command[0])==3){
-            cat(command[1],parentIdx);
-        } 
+        }
         else{
             messageArguments(input,parentIdx);
             interrupt(0x21,0x0006,command[0],0x3000,execStatus);

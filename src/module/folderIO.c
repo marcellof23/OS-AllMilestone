@@ -68,5 +68,36 @@ int getFilePathIdx(unsigned char parentIdx, char *filepath){
 }
 
 void getArguments(char *argv){
-    
+    char files[1024];
+    char sectors[512];
+    int i=0;
+    int j=0;
+    int parentIndex;
+
+    char debugOutput[8];
+    clear(debugOutput,8);
+
+    interrupt(0x21,2,files,0x101,0);
+    interrupt(0x21,2,files+512,0x102,0);
+    interrupt(0x21,2,sectors,0x103,0);
+
+    while(i<64){
+        if(files[i*16]==0xFF && files[i*16+1]==0xFF && files[i*16+2]=='t' && files[i*16+3]=='m' && files[i*16+4]=='p' && files[i*16+5]==0x0){
+            break;
+        }
+        i++;
+    }
+
+    parentIndex = i;
+
+    i=0;
+    while(i<64){
+        if(files[i*16]==parentIndex && files[i*16+2]=='~' && files[i*16+3]=='t'){
+            for(j=0;j<16;j++){
+                interrupt(0x21,0,"HAHAHAHA\r\n",0,0);
+                interrupt(0x21,2,argv+j*512,sectors[files[i*16+1]*16+j],0);
+            }
+        }
+        i++;
+    }
 }
