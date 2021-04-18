@@ -401,15 +401,35 @@ void ls(unsigned char parentIndex)
   }
 }
 
+void lsList(unsigned char parentIndex,int * countFile, char * listFiles)
+{
+  char files[1024];
+  int i = 0,j = 0;
+  char * filenames[64];
+  interrupt(0x21, 2, files, 0x101, 0);
+  interrupt(0x21, 2, files+512, 0x102, 0);
+  while(i<64)
+  {
+    if(files[i*0x10] == parentIndex && files[i*0x10 + 2] != '\0')
+    {
+      *(listFiles+j) = i;
+      j++;  
+    }
+    ++i;
+  }
+  *countFile = j;
+  listFiles[i] = 0xFF;
+}
 void cat(char * filenames, unsigned char parentIdx)
 {
     char files[1024];
     char buff[512 * 16];
     int idx = strlen(filenames);
-    int pathIdx;
+    int pathIdx,counterBuff = 0;
     char output[100];
     char filematrix[64][64];
     char countsplit;
+    char buffers[2];
     char linkedname[17];
     // char * currfile;
     interrupt(0x21, 2, files, 0x101, 0);
@@ -421,12 +441,28 @@ void cat(char * filenames, unsigned char parentIdx)
     clear(output,100);
     pathIdx = getFilePathIdx(parentIdx, filenames);
     countsplit = strsplit(filenames, '/', filematrix);
-
+    clear(buff,512*16);
     if(files[0x10*pathIdx+1]<0x20){
         if(pathIdx>=0)
         {
             interrupt(0x21, 4 + 0x100*files[0x10*pathIdx], buff, filematrix[countsplit-1], 0);
-            interrupt(0x21, 0, buff , 0, 0);
+            while(counterBuff < 512*16 && buff[counterBuff] != '\0')
+            {
+                buffers[0] = buff[counterBuff];
+                buffers[1] = 0;
+                if(buff[counterBuff] != '\n')
+                {    
+                    interrupt(0x21, 0, buffers , 0, 0);
+                }
+                else 
+                {
+                    interrupt(0x21, 0, "\r" , 0, 0);
+                    interrupt(0x21, 0, buffers , 0, 0);      
+                }
+                counterBuff++;
+            }
+            
+            // interrupt(0x21, 0, buff , 0, 0);
             interrupt(0x21, 0, "\r\n" , 0, 0);
             return;
         }
@@ -624,22 +660,13 @@ void cp(char * filenames, char parentIdx, char * src, char * dest) {
     char files[1024];
     int idxFolder,n,i,row,cnt;
     char nama[14];
+    char folderList[64];
     char curFile[14];
     int isFolder = 0,folderExist = 0;
     int itr = 0;
     readSector(files, 0x101);
     readSector(files+512, 0x102);
 
-    while(itr < 1024) {
-        strslice(files, curFile, itr+2, itr+16);
-        if(strcmp(src, curFile, strlen(filenames)) && strlen(src) == strlen(curFile)) {
-            if((unsigned char)files[itr+1] == 0xFF) {
-                isFolder = 1;
-            }
-        }
-        itr+= 16;
-    }
-    
     for(row = 0;row<64;row++) 
     {
         if((files[row*16] == parentIdx) && (files[row * 16 + 2] != 0x0) )
@@ -650,26 +677,20 @@ void cp(char * filenames, char parentIdx, char * src, char * dest) {
     n = cnt;
     idxFolder = getPathIdx(parentIdx, dest);
     mkdir(src,idxFolder);
-    // i = 0;
-    // while(i<0x40)
-    // {
-    //     if(files[i * 0x10] == parentIdx && (strcmp(dest,files + (i * 16) + 2 ,14) == 1) )
-    //     {
-    //         folderExist = 1;
-    //         break;
-    //     }
-    //     i++;
-    // }
-    // if(folderExist)
-    // {
-
-    // }
-    // else
-    // {
-            //mkdir
-    // }
         
-    for(i = 0; i<n;i++) {
+    for(i = 0; i<n;i++) 
+    {
+        itr = 0;
+        isFolder = 0;
+        while(itr < 1024) {
+        strslice(files, nama, itr+2, itr+16);
+        if(strcmp(src, nama, strlen(filenames)) && strlen(src) == strlen(nama)) {
+            if((unsigned char)files[itr+1] == 0xFF) {
+                isFolder = 1;
+            }
+        }
+        itr+= 16;
+    }
         if(!isFolder) {
             cpFiles(filenames,idxFolder,nama,src);
         }
@@ -847,9 +868,9 @@ void shell(){
             else if(strcmp(command[0],"cp",strlen(command[0])) && strlen(command[0])==2) 
             {
                 if(strcmp(command[1],"-r",strlen(command[1])) && strlen(command[1])==2){
-                    cpRecursive(buf, parentIdx, command[2], command[3]);
+                    cp(buf, parentIdx, command[2], command[3]);
                 } else{
-                    cp(buf, parentIdx, command[1], command[2]);
+                    cpFiles(buf, parentIdx, command[1], command[2]);
                 }
             }
             else{
