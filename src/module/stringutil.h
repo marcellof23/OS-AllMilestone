@@ -15,6 +15,8 @@ void itoa(int num, int basis, char * output);
 
 int isempty(char *buffer,int length);
 
+void strcpy(char *buffer,char *arg);
+
 void printString(char *string);
 void readString(char *string);
 

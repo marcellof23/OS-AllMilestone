@@ -210,3 +210,11 @@ void readString(char *string){
 
   *(string+i) = 0x0;
 }
+
+void strcpy(char *buffer,char *arg){
+  int i=0;
+  while(arg[i]!=0x0){
+    buffer[i] = arg[i];
+    i++;
+  }
+}

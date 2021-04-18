@@ -64,7 +64,10 @@ void executeProgram(char *filename, int segment, int *success, char parentIndex)
     // Buat buffer
     int isSuccess;
     char fileBuffer[512 * 16];
+    char fileNotFound[32];
     int i=0;
+    clear(fileNotFound,32);
+    fileNotFound[0] = 'F' ; fileNotFound[1]= 'i'; fileNotFound[2] = 'l' ; fileNotFound[3]= 'e'; fileNotFound[4] = ' ' ; fileNotFound[5]= 'n'; fileNotFound[6]= 'o'; fileNotFound[7] = 't' ; fileNotFound[8]= ' '; fileNotFound[9] = 'f';fileNotFound[10] = 'o';fileNotFound[11] = 'u';fileNotFound[12] = 'n';fileNotFound[13] = 'd';fileNotFound[14] = '!'; fileNotFound[15] = '\r'; fileNotFound[16] = '\n';
     // Buka file dengan readFile
     readFile(&fileBuffer, filename, &isSuccess, parentIndex);
     // If success, salin dengan putInMemory
@@ -75,6 +78,6 @@ void executeProgram(char *filename, int segment, int *success, char parentIndex)
         }
         launchProgram(segment);
     } else {
-        interrupt(0x21, 0, "File not found!", 0,0);
+        interrupt(0x21, 0, fileNotFound, 0,0);
     }
 }
