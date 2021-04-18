@@ -3,3 +3,4 @@ bochsout.txt
 bootloader
 kernel
 *.o
+bin
