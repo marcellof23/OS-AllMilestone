@@ -648,6 +648,16 @@ void rmRecursive(char *filename,unsigned char parentIndex){
     rm(filename,parentIndex);
 }
 
+void cponly(char * filenames, char parentIdx, char * src, char * dest)  {
+    int idx,res;
+    char strs[10];
+    readFile(filenames,src,&res, parentIdx);
+    idx = getFilePathIdx(parentIdx, dest);
+    writeFile(filenames,src,&res, idx);
+
+   
+}
+
 void cpFiles(char * filenames, char parentIdx, char * src, char * dest)  {
     int idx,res;
     char strs[10];
@@ -666,51 +676,38 @@ void cpFiles(char * filenames, char parentIdx, char * src, char * dest)  {
 
 void cp(char * filenames, char parentIdx, char * src, char * dest) {
     char files[1024];
-    int idxFolder,n,i,row,cnt,idxList;
-    char nama[14];
-    char folderList[64];
-    char curFile[14];
-    int isFolder = 0,folderExist = 0;
-    int itr = 0;
-    readSector(files, 0x101);
-    readSector(files+512, 0x102);
+    int i=0;
+    int idxSrc,idxDest;
+    char childFilename[14];
 
-    
-    
-    idxFolder = getPathIdx(parentIdx, dest);
-    idxList = getPathIdx(parentIdx, src);
+    interrupt(0x21, 2, files, 0x101, 0);
+    interrupt(0x21, 2, files+512, 0x102, 0);
 
-    for(row = 0;row<64;row++) 
-    {
-        if((files[row*16] == idxList) && (files[row * 16 + 2] != 0x0) )
-        {
-            cnt++;
+    idxSrc = getFilePathIdx(parentIdx, src);
+    idxDest = getFilePathIdx(parentIdx, dest);
+    mkdir(src,idxDest);
+    cponly(filenames, idxSrc, src,dest);
+
+    for(i=0;i<64;i++){
+        if(files[i*16]==idxSrc){
+            strslice(files+i*16,childFilename,2,16);
+            interrupt(0x21,0,childFilename,0,0);
+            interrupt(0x21,0,"\r\n",0,0);
+            if(files[i*16 + 1] == 0xFF)
+            {
+                mkdir(src,idxDest);
+                cp( childFilename, idxDest,  childFilename, src);
+            
+            }
+            else
+            {
+                cponly( childFilename, idxDest,  childFilename, src);
+            }
+            clear(childFilename,14);
         }
     }
-    n = cnt;
-    // mkdir(src,idxFolder);
+
     
-    // for(i = 0; i<n;i++) 
-    // {
-        itr = 0;
-        while(itr < 1024) {
-            readSector(files, 0x101);
-            readSector(files+512, 0x102);
-            strslice(files, nama, itr+2, itr+16);
-            if(strcmp(src, nama, strlen(filenames)) && strlen(src) == strlen(nama)) {
-                if((unsigned char)files[itr+1] == 0xFF) {
-                    interrupt(0x21,0,nama,0,0);
-                    cp(filenames,idxFolder,nama,src);
-                }
-                else 
-                {
-                    cpFiles(filenames,idxFolder,nama,src);
-                }
-            }
-            itr+= 16;
-        }
-        
-    // }
 
 }
 
