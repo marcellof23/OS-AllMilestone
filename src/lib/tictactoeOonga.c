@@ -82,7 +82,8 @@ int main()
 
     interrupt(0x21, 0, "Press Enter to Go back to shell!!\r\n", 0, 0);
     interrupt(0x21, 1, choice, 0, 0);
-
+    
+    deleteFile(getFilePathIdx(0xFF,"tmp/~temp"));
     interrupt(0x21,0x0006,"shell",0x3000,execStatus);
 }
 

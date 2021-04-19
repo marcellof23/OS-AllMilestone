@@ -24,6 +24,7 @@ int main() {
         interrupt(0x21,0,"Usage : mkdir <filename>\r\n");
     }
 
+    deleteFile(getFilePathIdx(0xFF,"tmp/~temp"));
     interrupt(0x21,0x0006,"shell",0x3000,execStatus);
     return 1;
 }

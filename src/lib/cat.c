@@ -1,4 +1,5 @@
 #include "../module/folderIO.h"
+#include "../module/fileIO.h"
 #include "../module/stringutil.h"
 #include "../module/math.h"
 
@@ -27,6 +28,8 @@ int main(){
     } else{
         cat(command[3], parentIdx);
     }
+
+    deleteFile(getFilePathIdx(0xFF,"tmp/~temp"));
 
     // interrupt(0x21,0,buffer,0,0);
     // interrupt(0x21,0,"\r\n",0,0);
