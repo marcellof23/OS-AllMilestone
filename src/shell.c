@@ -1,7 +1,3 @@
-#include "module/math.h"
-#include "module/stringutil.h"
-#include "module/folderIO.h"
-
 void cwd(int pathIdx,char *dir);
 
 int cd(int currParentIdx, char *dirPath);
@@ -19,9 +15,10 @@ void getShellState(char *argv);
 void removeShellState();
 
 int main(){
-    int i, j, commandCount, historyCount, historyIdx = 0, count, idx;
+    int i, j, commandCount, historyCount, historyIdx = 0, idx, flag;
     int tabPressed = 0, arrowPressed = 0;
     char input[512];
+    char filename[14];
     char temp[512];
     char history[512];
     char command[8][64];
@@ -30,7 +27,6 @@ int main(){
     char dir[128];
     char currShellState[8192];
     char debugOutput[512];
-    char buf[512*16];
 
     char execStatus[16];
 
@@ -127,8 +123,17 @@ int main(){
                 }
             } else if(strcmp(command[0],"ls",strlen(command[0])) && strlen(command[0])==2){
                 ls(parentIdx);
-            }
-            else{
+            } else if(command[0][0] == '.' && command[0][1] == '/') {
+                clear(filename, 14);
+                strcpy(filename, command[0]+2);
+                flag = getFilePathIdx(parentIdx, filename);
+                if(flag != -2) {
+                    messageArguments(filename,parentIdx);
+                    interrupt(0x21,0x0006,filename,0x3000,execStatus);
+                } else {
+                    interrupt(0x21, 0, "File not found!", 0, 0);
+                }
+            } else{
                 messageArguments(input,parentIdx);
                 interrupt(0x21,0x0006,command[0],0x3000,execStatus);
             }
@@ -259,35 +264,35 @@ void ls(unsigned char parentIndex)
   }
 }
 
-void autoComplete(char *filename, char parentIdx) {
-    char files[512 * 2];
-    char *temp;
-    char *currFilename;
-    int i, idxFilename, idxTemp;
-    interrupt(0x21, 2, files, 0x101, 0);
-    interrupt(0x21, 2, files + 512, 0x102, 0);
+// void autoComplete(char *filename, char parentIdx) {
+//     char files[512 * 2];
+//     char *temp;
+//     char *currFilename;
+//     int i, idxFilename, idxTemp;
+//     interrupt(0x21, 2, files, 0x101, 0);
+//     interrupt(0x21, 2, files + 512, 0x102, 0);
 
-    i = 0;
-    while(i < 1024) {
-        strslice(files, currFilename, i+2, i+16);
-        if(files[i] == parentIdx && strcmp(filename, currFilename, strlen(filename))) {
-            strslice(files, temp, i+2+strlen(filename), i+16);
-            interrupt(0x21, 0, temp, 0, 0);
+//     i = 0;
+//     while(i < 1024) {
+//         strslice(files, currFilename, i+2, i+16);
+//         if(files[i] == parentIdx && strcmp(filename, currFilename, strlen(filename))) {
+//             strslice(files, temp, i+2+strlen(filename), i+16);
+//             interrupt(0x21, 0, temp, 0, 0);
 
-            //update filename
-            idxFilename = strlen(filename);
-            idxTemp = 0;
-            while(*(temp+idxTemp) != 0x0) {
-                *(filename+idxFilename) = *(temp+idxTemp);
-                idxFilename++;
-                idxTemp++;
-            }
-            *(filename+idxFilename) = 0x0;
-            break;
-        }
-        i += 16;
-    }
-}
+//             //update filename
+//             idxFilename = strlen(filename);
+//             idxTemp = 0;
+//             while(*(temp+idxTemp) != 0x0) {
+//                 *(filename+idxFilename) = *(temp+idxTemp);
+//                 idxFilename++;
+//                 idxTemp++;
+//             }
+//             *(filename+idxFilename) = 0x0;
+//             break;
+//         }
+//         i += 16;
+//     }
+// }
 
 void messageArguments(char *argv,char parentIndex){
     char files[1024];

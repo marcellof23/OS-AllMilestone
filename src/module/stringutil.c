@@ -201,12 +201,13 @@ void readString(char *string){
     string[0] = 0x00;
     string[1] = high;
     return;
-  } else if(low == 0x09) {
-    *(string+i) = 0x09;
-    i++;
-    *(string+i) = 0x0;
-    return;
-  }
+  } 
+  // else if(low == 0x09) {
+  //   *(string+i) = 0x09;
+  //   i++;
+  //   *(string+i) = 0x0;
+  //   return;
+  // }
 
   *(string+i) = 0x0;
 }
