@@ -241,117 +241,92 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
   char map[512];
   char files[1024];
   char sectorsFile[512];
-  char tmp[100];
-  int i, j, filenamePar,previousPar,idxFolder;
-  int secIdx, emptySector, emptyFile;
+
+  char debugOutput[128];
+  char crlf[3];
+
+  char cache[512];
+
+  int i,j,k,sectorsNeeded , sectorsAvailable,sectorIndex, filesIndex;
+
+  int z=0;
+
+  crlf[0] = '\r'; crlf[1] = '\n'; crlf[2] = '\0'; 
+
+  filesIndex = -1;
+
+  sectorsAvailable = 0;
 
   readSector(map,0x100);
   readSector(files,0x101);
   readSector(files+0x200,0x102);
   readSector(sectorsFile,0x103);
 
-  
-  i = 0;
-  previousPar = 0;
-  clear(tmp,100);
-  idxFolder = parentIndex;
-  while(path[i] != 0x0) 
-  {
-    if(path[i] == '/') 
-    {
-      for(j = previousPar;j<i;j++)
-      {
-        tmp[j-previousPar] = path[j];
-      }
-      if((idxFolder = SearchFilenames(files,tmp,idxFolder,1)) == -1)
-      {
-        *sectors = -4;
-        return;
-      }
-      clear(tmp,100);
-      previousPar = i+1;
-    }
-    ++i;
-  }
-  if(SearchFilenames(files,path+previousPar,idxFolder,0) != -1 || SearchFilenames(files,path+previousPar,idxFolder,1) != -1 )
-  {
-    *sectors = -1;
-    return;
-  }
-  for(i = 0;i<0x200;i++)
-  {
-    if(map[i] == 0x0)
-      break;
-  }
-  if(i == 0x200)
-  {
-    *sectors = -3;
-    return;
-  }
-  emptySector = i;
-  i = 0;
-  while(i<64) {
-    if(files[i * 0x10] == '\0')
-    {
-      break;
-    }
+  i=0;
+  while(buffer[i]!=0x0){
     i++;
   }
-  if(i==64) 
-  {
-    *sectors = -2;
-    return;
-  }
-  emptyFile = i;
-  i = 0;
-  while(i<32) {
-    if(sectorsFile[i * 0x10] == '\0')
-    {
-      break;
-    }
-    i++;
-  }
-  if(i==32) 
-  {
-    *sectors = -3;
-    return;
-  }
-  secIdx = i;
-  i = 0;
-  while(path[i] != 0x0)
-  {
-    if(path[i] == '/')
-    {
-      filenamePar = i+1;
-    }
-    ++i;
-  }
-  i = 0;
-  while(path[filenamePar + i] != 0x0 && i < 14)
-  {
-    files[emptyFile * 0x10 + 2 + i] = path[filenamePar + i];
-    ++i;
-  }
-  files[emptyFile * 0x10] = idxFolder;
-  files[emptyFile * 0x10 + 1] = secIdx;
 
-  i = 0;
-  while(buffer[i * 512] != '\0')
-  {
-    writeSector(buffer + i * 512, emptySector);
-    sectorsFile[secIdx * 16 + i] = emptySector;
-    map[emptySector] = 0xFF;
-    while((unsigned char)map[emptySector] == 0xFF)
-    {
-      emptySector++;
+  sectorsNeeded = div(i,512) + 1;
+  for(i=0;i<256;i++){
+    if(map[i]!=0x0){
+      sectorsAvailable++;
     }
-    i++;
   }
+
+  if(sectorsAvailable>=sectorsNeeded){
+    for(i=0;i<64;i++){
+      if(isempty(files+i*16, 16)){
+        filesIndex = i;
+        break;
+      }
+    }
+    if(filesIndex!=-1){
+      for(i=0;i<32;i++){
+        if(isempty(sectorsFile+i*16,16)){
+          sectorIndex = i;
+          j = 0;
+          k = 0;
+
+          while(j<256 && k<sectorsNeeded){
+            if(map[j]==0x0){
+              map[j] = 0xFF;
+              sectorsFile[sectorIndex*16+k] = j;
+
+              readSector(cache, j);
+              for(z=0;z<512;z++){
+                  cache[z] = buffer[k*512+z];
+              }
+              writeSector(cache, j);
+
+              k++;
+            }
+            j++;
+          }
+
+          files[filesIndex*16] = parentIndex;
+          files[filesIndex*16+1] = sectorIndex;
+
+          j=2;
+          while(j<16 && path[j-2]!=0x0){
+            files[filesIndex*16+j] = path[j-2];
+            j++;
+          }
+          break;
+        }
+      }
+    } else{
+      interrupt(0x21,0,"No slot for file\r\n",0,0);
+    }
+  }
+  else{
+    interrupt(0x21,0,"Not enough sectors\r\n",0,0);
+  }
+
   writeSector(map,256);
   writeSector(files,257);
   writeSector(files+0x200,258);
   writeSector(sectorsFile,259);
-  *sectors = 1;
 }
 // void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
 // {

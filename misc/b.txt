@@ -1,0 +1,53 @@
+
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam ultrices eu lorem vitae luctus. Integer dictum hendrerit pulvinar. Quisque vel metus nisl. Phasellus ultricies consequat lacus et commodo. Curabitur non mi ut erat eleifend finibus quis sit amet nisi. Fusce egestas ultrices ullamcorper. Aliquam vitae nisi metus. Sed lacus lectus, iaculis feugiat fringilla ut, accumsan sit amet ante. Lorem ipsum dolor sit amet, consectetur adipiscing elit. In volutpat odio id metus condimentum sagittis. Phasellus dignissim felis nisl, at viverra eros tincidunt ut. Praesent viverra tellus at sapien porta bibendum.
+
+Duis mollis bibendum leo et convallis. In hac habitasse platea dictumst. Quisque eros nunc, finibus et purus non, volutpat imperdiet velit. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla congue ante nec turpis consectetur, vel suscipit odio ultrices. Etiam et magna purus. Mauris pulvinar ante porttitor felis sagittis porta. Aliquam elit justo, dapibus non tristique in, convallis eget arcu. In quis tincidunt nibh, et venenatis magna. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae;
+
+Curabitur id mauris non ante tristique semper. Cras vel tellus quam. Vestibulum bibendum iaculis purus, quis lacinia lacus molestie vel. Phasellus dignissim, diam eu viverra eleifend, felis risus iaculis eros, et dignissim lacus augue et dolor. Etiam bibendum semper lorem, sit amet fringilla tellus tincidunt id. Vivamus ornare facilisis elit et mattis. In imperdiet quam erat, ut feugiat mauris convallis at. Nullam quis ipsum euismod, elementum justo id, blandit lorem. In commodo est nec congue luctus.
+
+Nullam diam purus, viverra quis sollicitudin at, sodales at augue. Curabitur lobortis malesuada imperdiet. Curabitur tellus ex, suscipit in laoreet sit amet, laoreet ut sem. Maecenas convallis consectetur laoreet. Aliquam vulputate pharetra nisl, ac auctor urna ultrices quis. Nullam varius lacus velit, a finibus est tincidunt sed. Donec et ipsum quis nisi volutpat tincidunt. Quisque efficitur egestas neque quis ornare. Quisque molestie ipsum vel ex interdum, id congue erat ultrices.
+
+Suspendisse odio eros, suscipit finibus felis id, pretium feugiat nunc. Donec gravida, diam aliquet facilisis posuere, sapien neque lobortis tellus, nec rhoncus sem ex in diam. Etiam viverra commodo purus. Quisque auctor dictum odio, ac vulputate arcu sollicitudin id. Fusce tincidunt euismod iaculis. Quisque venenatis sodales ligula, ut pulvinar felis volutpat in. Duis sit amet dolor et nisi lobortis eleifend. Quisque tincidunt pretium nulla, ut faucibus erat blandit sed. Praesent nec lacinia eros. Nulla aliquet justo sapien, at tincidunt neque scelerisque id. Pellentesque pulvinar viverra consequat. Nullam venenatis velit id ullamcorper tempor. Duis eu justo sed nulla viverra efficitur eget quis odio. Nullam fermentum imperdiet volutpat. Praesent nisl sapien, finibus quis commodo id, ultricies consectetur felis.
+
+Aenean posuere ipsum porta scelerisque dictum. Duis condimentum egestas urna, et lobortis diam imperdiet vitae. Nunc sit amet diam bibendum, viverra risus vitae, eleifend velit. Sed volutpat mollis posuere. Fusce sollicitudin purus diam, sed dictum nisi sagittis at. Suspendisse convallis erat id suscipit mollis. Orci varius natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Class aptent taciti sociosqu ad litora torquent per conubia nostra, per inceptos himenaeos. Fusce a mattis lacus, vel hendrerit est. Proin mattis sapien vitae mi mollis, sed consequat eros maximus. Praesent eu augue sollicitudin, porttitor dui placerat, consectetur mauris. Quisque lacinia justo enim, et consequat elit imperdiet id.
+
+Sed a justo nisi. Nam elementum non eros iaculis varius. Nunc efficitur imperdiet tellus, eu dignissim enim condimentum in. Cras vestibulum venenatis dui. Aliquam at sapien diam. Integer porttitor tempor varius. In tristique mi vel egestas viverra. Suspendisse convallis dapibus diam, nec fusce. 
+void cps(char * filename, char parentIdx, char * src, char * dest) {
+  char files[1024];
+  char listFiles[64];
+  int i = 0,j = 0,total,isFolder = 0,itr;
+  char filenames[64][16],curFile[14];
+  interrupt(0x21, 2, files, 0x101, 0);
+  interrupt(0x21, 2, files+512, 0x102, 0);
+  itr = 0;
+  while(itr < 1024) {
+        strslice(files, curFile, i+2, i+16);
+        if(strcmp(dest, curFile, strlen(filename)) && strlen(dest) == strlen(curFile)) {
+            if((unsigned char)files[i+1] == 0xFF) {
+                isFolder = 1;
+            }
+        }
+        itr+= 16;
+  }
+  while(i<64)
+  {
+    if(files[i*0x10] == parentIdx && files[i*0x10 + 2] != '\0')
+    {
+      *(listFiles+j) = i;
+      j++;  
+    }
+    ++i;
+  }
+  total = j;
+  for(i = 0; i<total;i++)
+  {
+    for(j=0;j<14;j++)
+    {
+      filenames[i][j]= files[listFiles[i]  * 0x10 + 2 + j];
+    }
+    interrupt(0x21, 0, filenames[i], 0, 0);
+    interrupt(0x21, 0, "\n", 0, 0);
+    interrupt(0x21, 0, "\r", 0, 0);
+  }
+}
