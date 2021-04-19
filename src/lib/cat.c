@@ -23,7 +23,7 @@ int main(){
     parentIdx = command[1][0];
 
     if(argc!=3){
-        interrupt(0x21,0,"Usage : cat <filepath>");
+        interrupt(0x21,0,"Usage : cat <filepath>\r\n");
     } else{
         cat(command[3], parentIdx);
     }
@@ -40,10 +40,11 @@ void cat(char * filenames, unsigned char parentIdx)
     char files[1024];
     char buff[512 * 16];
     int idx = strlen(filenames);
-    int pathIdx;
+    int pathIdx,counterBuff = 0;
     char output[100];
     char filematrix[64][64];
     char countsplit;
+    char buffers[2];
     char linkedname[17];
     // char * currfile;
     interrupt(0x21, 2, files, 0x101, 0);
@@ -55,12 +56,28 @@ void cat(char * filenames, unsigned char parentIdx)
     clear(output,100);
     pathIdx = getFilePathIdx(parentIdx, filenames);
     countsplit = strsplit(filenames, '/', filematrix);
-
+    clear(buff,512*16);
     if(files[0x10*pathIdx+1]<0x20){
         if(pathIdx>=0)
         {
             interrupt(0x21, 4 + 0x100*files[0x10*pathIdx], buff, filematrix[countsplit-1], 0);
-            interrupt(0x21, 0, buff , 0, 0);
+            while(counterBuff < 512*16 && buff[counterBuff] != '\0')
+            {
+                buffers[0] = buff[counterBuff];
+                buffers[1] = 0;
+                if(buff[counterBuff] != '\n')
+                {    
+                    interrupt(0x21, 0, buffers , 0, 0);
+                }
+                else 
+                {
+                    interrupt(0x21, 0, "\r" , 0, 0);
+                    interrupt(0x21, 0, buffers , 0, 0);      
+                }
+                counterBuff++;
+            }
+            
+            // interrupt(0x21, 0, buff , 0, 0);
             interrupt(0x21, 0, "\r\n" , 0, 0);
             return;
         }

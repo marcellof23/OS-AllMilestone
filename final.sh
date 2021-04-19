@@ -13,3 +13,4 @@ dd if=./output/files.img of=./output/system.img bs=512 count=2 seek=257 conv=not
 dd if=./output/sectors.img of=./output/system.img bs=512 count=1 seek=259 conv=notrunc
 
 python3 script/installFiles.py ./bin/shell ./bin/ln ./bin/cp ./bin/cat ./bin/mv ./bin/rm ./bin/mkdir ./bin/tictactoe
+python3 script/loadfile.py misc/a.txt misc/ab.txt
