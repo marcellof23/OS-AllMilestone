@@ -85,6 +85,7 @@ int getPathIdx(int parentIdx, char *filename) { //Get Index file di files
     }
 }
 
+
 int getFilePathIdx(unsigned char parentIdx, char *filepath){
     char file[1024];
     char currFile[14];
@@ -649,11 +650,12 @@ void rmRecursive(char *filename,unsigned char parentIndex){
 
 void cpFiles(char * filenames, char parentIdx, char * src, char * dest)  {
     int idx,res;
+    char strs[10];
     readFile(filenames,src,&res, parentIdx);
-    idx = getPathIdx(parentIdx, dest);
-    if(idx == -1)
+    idx = getFilePathIdx(parentIdx, dest);
+    if(idx == -2)
     {
-        writeFile(filenames,dest,&res, idx);
+        writeFile(filenames,dest,&res, parentIdx);
     }
     else 
     {
@@ -716,22 +718,26 @@ void cpRecursive(char * filenames, char parentIdx, char * src, char * dest){
     char files[1024];
     int idxFolder,n,i,j = 0,row,total = 0,idxList,x,y;
     char name[14];
-    char listFiles[64];
+    char listFiles[64],strs[10];
     int idxDest = 0, idxSource = 0,folderExist = 0,copyName = 0;
     int itr = 0;
     readSector(files, 0x101);
     readSector(files+512, 0x102);
     idxSource = getPathIdx(parentIdx, src);
-    idxDest= getPathIdx(parentIdx, dest);
+    idxDest= getFilePathIdx(parentIdx, dest);
     while(i<64)
     {
         if(files[i*0x10] == idxSource && files[i*0x10 + 2] != '\0')
         {
-        *(listFiles+j) = i;
-        j++;  
+            *(listFiles+j) = i;
+            j++;  
         }
-        ++i;
+            ++i;
     }
+    // clear(strs,10);
+    // itoa(parentIdx,10,strs);
+    // interrupt(0x21,0,strs,0,0);
+   
     total = j;
     for(i = 0; i<total;i++)
     {
@@ -740,28 +746,33 @@ void cpRecursive(char * filenames, char parentIdx, char * src, char * dest){
         {
             name[j] = files[listFiles[i]  * 0x10 + 2 + j];
         }
-        copyName = getPathIdx(idxSource, name);
-        if(files[copyName * 16 + 1] == 0xFF) 
+        copyName = getFilePathIdx(idxSource, name);
+        // clear(strs,10);
+        // itoa(idxDest,10,strs);
+        // interrupt(0x21,0,strs,0,0);
+        // interrupt(0x21,0,name,0,0);
+        if((unsigned char)files[copyName * 16 + 1] == 0xFF) 
         {   
-            // y = 0;
-            // while(files[y*0x10+2] != '\0' )
-            // {
-            //     y++;
-            // } 
-            // files[y * 0x10] = idxDest;
-            // files[y * 0x10 + 1] = 0xFF;
-            // for(x = 0 ;x < 14; x++)
-            // {
-            //     if(name[x] == '\0')
-            //         break;
-            //     files[y * 0x10 + x + 2] = name[x];
-            // }
+            y = 0;
+            while(files[y*0x10+2] != '\0' )
+            {
+                y++;
+            } 
+            files[y * 0x10] = idxDest;
+            files[y * 0x10 + 1] = 0xFF;
+            for(x = 0 ;x < 14; x++)
+            {
+                if(name[x] == '\0')
+                    break;
+                files[y * 0x10 + x + 2] = name[x];
+            }
             // interrupt(0x21,0,name,0,0);
-            cpRecursive(filenames,copyName,name,dest);
+            
+            cpRecursive(filenames,y,name,dest);
         }
         else
         {
-            cpFiles(filenames,copyName,name,dest);
+            cpFiles(filenames,parentIdx,name,dest);
         }
         // interrupt(0x21,0,name,0,0);
         // interrupt(0x21,0,"\r\n",0,0);
@@ -780,6 +791,7 @@ void shell(){
     char dir[128];
     char buf[512 * 16];
     int status;
+    char strs[10];
         
     for(i = 0; i < 4; i++) {
         clear(history[i], 128);
@@ -900,11 +912,18 @@ void shell(){
             }
             else if(strcmp(command[0],"cp",strlen(command[0])) && strlen(command[0])==2) 
             {
+                
                 if(strcmp(command[1],"-r",strlen(command[1])) && strlen(command[1])==2){
                     cpRecursive(buf, parentIdx, command[2], command[3]);
                 } else{
-                    idxS = getPathIdx(parentIdx,command[1]);
-                    idxD = getPathIdx(parentIdx, command[2]);
+                    idxS = getFilePathIdx(parentIdx, command[1]);
+                    idxD = getFilePathIdx(parentIdx, command[2]);
+                    // clear(strs,10);
+                    // itoa(idxS,10,strs);
+                    // interrupt(0x21,0,strs,0,0);
+                    // clear(strs,10);
+                    // itoa(idxD,10,strs);
+                    // interrupt(0x21,0,strs,0,0);
                     if(idxS == idxD && strcmp(command[1], command[2], 14))
                     {
                         interrupt(0x21,0,"You copy two file with same name\r\n",0,0);
