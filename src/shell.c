@@ -676,36 +676,38 @@ void cpFiles(char * filenames, char parentIdx, char * src, char * dest)  {
 
 void cp(char * buf, char parentIdx, char * src, char * dest) {
     char files[1024];
-    int i=0;
+    int i=0,total = 0,j = 0;
     int idxSrc,idxDest;
     char childFilename[14];
-
+     char listFiles[64];
     interrupt(0x21, 2, files, 0x101, 0);
     interrupt(0x21, 2, files+512, 0x102, 0);
 
     idxSrc = getFilePathIdx(parentIdx, src);
     idxDest = getFilePathIdx(parentIdx, dest);
     mkdir(src,idxDest);
-
     for(i=0;i<64;i++){
         if(files[i*16]==idxSrc){
             strslice(files+i*16,childFilename,2,16);
             interrupt(0x21,0,childFilename,0,0);
             interrupt(0x21,0,"\r\n",0,0);
-            if(files[i*16 + 1] == 0xFF)
+            if(files[i*16 +2] != '\0')
             {
-                mkdir(src,idxDest);
-                cp( buf, idxDest,  childFilename, src);
+                if(files[i*16 + 1] == 0xFF)
+                {
+                    mkdir(src,idxDest);
+                    cp( buf, idxDest,  childFilename, src);
+                
+                }
+                else
+                {
+                    cpFiles( buf, idxDest,  childFilename, src);
+                }
+                clear(childFilename,14);
+            }
             
-            }
-            else
-            {
-                cponly( buf, idxDest,  childFilename, src);
-            }
-            clear(childFilename,14);
         }
     }
-    cponly( buf, idxDest,  childFilename, src);
     
 
 }
