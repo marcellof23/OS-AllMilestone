@@ -53,6 +53,9 @@ int ln(char *filepath, char *filelink,int soft,unsigned char parentIndex){
     char res[100];
     char filename[14];
 
+    clear(res,100);
+    clear(filename,14);
+
     interrupt(0x21,2,files,0x101,0,0);
     interrupt(0x21,2,files+512,0x102,0,0);
 
@@ -126,6 +129,7 @@ int ln(char *filepath, char *filelink,int soft,unsigned char parentIndex){
         // IF everything is OK
 
         linkcount = strsplit(filelink, '/', filelinkmatrix);
+
         charcount =0;
         for(i=0;i<linkcount;i++){
             j=0;
@@ -150,6 +154,9 @@ int ln(char *filepath, char *filelink,int soft,unsigned char parentIndex){
         for(i=0;i<1024;i+=16){
             if(isempty(files+i,16)){
                 files[i] = linkcount == 1 ? parentIndex : getPathIdx(parentIndex,res);
+
+                interrupt(0x21,0,res,0,0);
+                interrupt(0x21,0,"\r\n",0,0);
                 files[i+1] = files[idx*16+1];
                 for(j=2;j<16;j++){
                     files[i+j] = filename[j-2];

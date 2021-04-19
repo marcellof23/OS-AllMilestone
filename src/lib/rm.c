@@ -30,6 +30,11 @@ int main(){
         rm(command[3],parentIdx);
     } else if(argc==4){
         interrupt(0x21,0,"rm recursive dipanggil\r\n",0,0);
+        interrupt(0x21,0, "parentIdx shell\r\n");
+
+        itoa(parentIdx,10,debugOutput);
+        interrupt(0x21,0,debugOutput,0,0);
+        interrupt(0x21,0,"\r\n",0,0);
         rmRecursive(command[4],parentIdx);
     }
     else{
@@ -67,7 +72,7 @@ void rm(char *filename,unsigned char parentIndex){
         interrupt(0x21,0,"It's a folder\r\n",0,0);
         
         for(i=0;i<64;i++){
-            if(files[i*16]==idx){
+            if(files[i*16]==idx && !isempty(files+i*16,16)){
                 empty = 0;
                 break;
             }
@@ -123,14 +128,20 @@ void rmRecursive(char *filename,unsigned char parentIndex){
     int i=0;
     int idx;
     char childFilename[14];
+    char debugOutput[512];
 
     interrupt(0x21, 2, files, 0x101, 0);
     interrupt(0x21, 2, files+512, 0x102, 0);
 
+    interrupt(0x21,0,"HAHAHA\r\n",0,0);
+    itoa(idx,10,debugOutput);
+    interrupt(0x21,0,debugOutput,0,0);
+    interrupt(0x21,0,"\r\n",0,0);
+
     idx = getFilePathIdx(parentIndex, filename);
 
     for(i=0;i<64;i++){
-        if(files[i*16]==idx){
+        if(files[i*16]==idx && !isempty(files+i*16, 16)){
             strslice(files+i*16,childFilename,2,16);
             interrupt(0x21,0,childFilename,0,0);
             interrupt(0x21,0,"\r\n",0,0);
