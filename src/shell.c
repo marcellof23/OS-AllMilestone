@@ -1,7 +1,5 @@
 #include "shell.h"
 #include "utilities.h"
-#include "kernel.c"
-int a = 0;
 
 void cwd(int pathIdx, char *dir) {
     int depth = 0;
