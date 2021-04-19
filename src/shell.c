@@ -8,26 +8,22 @@ int cd(int currParentIdx, char *dirPath);
 
 void ls(unsigned char parentIndex);
 
-void mkdir( char *filenames,unsigned char parentIndex);
-
 void autoComplete(char *filename, char parentIdx);
 
 void messageArguments(char *argv,char parentIndex);
 
-void shellState(char currParentIdx);
+void shellState(char currParentIdx, int historyCount, char *history);
 
 void getShellState(char *argv);
 
 void removeShellState();
 
-void cpFiles(char * filenames, char parentIdx, char * src, char * dest);
-
 int main(){
-    int i, j, commandCount, historyCount = -1, historyIdx = -1, count, idx;
+    int i, j, commandCount, historyCount, historyIdx = 0, count, idx;
     int tabPressed = 0, arrowPressed = 0;
     char input[512];
-    char temp[128];
-    char history[4][128];
+    char temp[512];
+    char history[512];
     char command[8][64];
     int parentIdx = 0xFF;
     int targetDir;
@@ -40,41 +36,104 @@ int main(){
 
     clear(input,512);
     clear(currShellState, 8192);
-        
-    for(i = 0; i < 4; i++) {
-        clear(history[i], 128);
-    }
+    clear(history, 512);
 
     getShellState(currShellState);
 
     parentIdx = currShellState[0];
+    historyCount = currShellState[1];
+    
+    i = 2; j = 0; idx = 0;
+    while(currShellState[i] != 0x0) {
+        if(currShellState[i] == '|') {
+            idx++;
+            i++;
+            j = 0;
+        } else {
+            history[idx*128+j] = currShellState[i];
+            i++;
+            j++;
+        }
+    }
 
     while(1){
         if(!tabPressed && !arrowPressed) {
             cwd(parentIdx,dir);
         }
 
-        clear(input,512);
-
         interrupt(0x21,1,input,0,0);
-        interrupt(0x21,0,"\r\n",0,0);
         commandCount = strsplit(input,' ',command);
 
-        if(strcmp(command[0], "cd", strlen(command[0])) && strlen(command[0])==2){
-            targetDir = cd(parentIdx,command[1]);
-            if(targetDir != -1) {
-                parentIdx = targetDir;
-            } else {
-                interrupt(0x21,0, "No such directory\r\n",0,0);
+        if((input[0] == 0x00 && input[1] != 0x00)) {
+            // arrow down
+            if(input[1] == 0x50)
+            {
+                if(historyIdx > 0 )
+                {
+                    historyIdx = historyIdx - 1;
+                }
             }
-        } else if(strcmp(command[0],"ls",strlen(command[0])) && strlen(command[0])==2){
-            ls(parentIdx);
-        }
-        else{
-            removeShellState();
-            shellState((unsigned char) parentIdx);
-            messageArguments(input,parentIdx);
-            interrupt(0x21,0x0006,command[0],0x3000,execStatus);
+            else if(input[1] == 0x48)
+            {
+                if(historyIdx < historyCount)
+                {
+                    historyIdx = historyIdx + 1;
+                }
+            }
+            else 
+            {
+                interrupt(0x21, 0, "command not found", 0, 0);
+            }
+            if(historyIdx != -1)
+            {
+                interrupt(0x21, 0, history+(historyCount-historyIdx)*128, 0, 0);
+                strcpy(temp, history+(historyCount-historyIdx)*128);
+                input[0] = 0xFF;
+                input[1] = 0xFF;
+                temp[strlen(history+(historyCount-historyIdx)*128)] = 0x0;
+                strslice(temp, input + 2, 0, strlen(temp));
+                input[2+strlen(temp)] = 0x0;
+            }
+            else
+            {
+                clear(input,512);
+            }
+            arrowPressed = 1;
+        } else {
+            interrupt(0x21,0,"\r\n",0,0);
+            arrowPressed = 0;
+            // add history
+            if(historyCount < 4) {
+                strcpy(history+historyCount*128, input);
+                shellState((unsigned char) parentIdx, historyCount+1, history);
+                historyCount++;
+            } else {
+                for(i=0; i<3; i++) {
+                    clear(history+i*128, 128);
+                    strcpy(history+i*128, history+((i+1)*128));
+                    shellState((unsigned char) parentIdx, historyCount, history);
+                }
+                clear(history+4*128, 128);
+                strcpy(history+4*128, input);
+                shellState((unsigned char) parentIdx, historyCount, history);
+            }
+
+            if(strcmp(command[0], "cd", strlen(command[0])) && strlen(command[0])==2){
+                targetDir = cd(parentIdx,command[1]);
+                if(targetDir != -1) {
+                    parentIdx = targetDir;
+                } else {
+                    interrupt(0x21,0, "No such directory\r\n",0,0);
+                }
+            } else if(strcmp(command[0],"ls",strlen(command[0])) && strlen(command[0])==2){
+                ls(parentIdx);
+            }
+            else{
+                messageArguments(input,parentIdx);
+                interrupt(0x21,0x0006,command[0],0x3000,execStatus);
+            }
+            clear(input,512);
+            historyIdx = 0;
         }
     }
     return 0;
@@ -270,16 +329,30 @@ void messageArguments(char *argv,char parentIndex){
     interrupt(0x21,(i << 8) + 0x5,arg,"~temp",&trash);
 }
 
-void shellState(char currParentIndex){
+void shellState(char currParentIndex, int historyCount, char *history){
     char files[1024];
 
     char trash = 0;
-    int i=0;
+    int i, j, idx = 0;
 
     char arg[512];
     clear(arg,512);
 
+    removeShellState();
+
     arg[0] = currParentIndex;
+    arg[1] = (unsigned char) historyCount;
+    
+    i = 2;
+    while(idx < historyCount) {
+        for(j = 0; j < strlen(history+(idx*128)); j++) {
+            arg[i] = history[idx*128+j];
+            i++;
+        }
+        arg[i] = '|';
+        i++;
+        idx++;
+    }
 
     interrupt(0x21,2,files,0x101,0);
     interrupt(0x21,2,files+512,0x102,0);
@@ -316,6 +389,8 @@ void getShellState(char *argv) {
 
     if(flag == -1) {
         argv[0] = 0xFF;
+        argv[1] = 0;
+        argv[2] = '|';
     }
 }
 
@@ -362,46 +437,4 @@ void removeShellState() {
     interrupt(0x21, 3, files, 0x101, 0);
     interrupt(0x21, 3, files+512, 0x102, 0);
     interrupt(0x21, 3, sectors, 0x103, 0);   
-}
-
-void cat(char * filenames, unsigned char parentIdx)
-{
-    char files[1024];
-    char buff[512 * 16];
-    int idx = strlen(filenames);
-    int pathIdx;
-    char output[100];
-    char filematrix[64][64];
-    char countsplit;
-    char linkedname[17];
-    // char * currfile;
-    interrupt(0x21, 2, files, 0x101, 0);
-    interrupt(0x21, 2, files+512, 0x102, 0);
-    while(idx < 14) {
-        *(filenames + idx) = 0x0;
-        idx++;
-    }
-    clear(output,100);
-    pathIdx = getFilePathIdx(parentIdx, filenames);
-    countsplit = strsplit(filenames, '/', filematrix);
-
-    if(files[0x10*pathIdx+1]<0x20){
-        if(pathIdx>=0)
-        {
-            interrupt(0x21, 4 + 0x100*files[0x10*pathIdx], buff, filematrix[countsplit-1], 0);
-            interrupt(0x21, 0, buff , 0, 0);
-            interrupt(0x21, 0, "\r\n" , 0, 0);
-            return;
-        }
-    } else{
-        if(pathIdx>=0)
-        {
-            strslice(files+0x10*(files[0x10*pathIdx+1]-0x20),linkedname,2,16);
-            interrupt(0x21, 4 + 0x100*(files[0x10*(files[0x10*pathIdx+1]-0x20)]), buff, linkedname, 0);
-            interrupt(0x21, 0, buff , 0, 0);
-            interrupt(0x21,0,"\r\n", 0,0);
-            return;
-        }       
-    }
-    interrupt(0x21, 0, "file tidak ditemukan\r\n", 0, 0);
 }
