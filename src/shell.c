@@ -269,7 +269,7 @@ void messageArguments(char *argv,char parentIndex){
 
 void shellState(char currParentIndex){
     char files[1024];
-    char debugOutput[16];
+
     char trash = 0;
     int i=0;
 
@@ -277,8 +277,6 @@ void shellState(char currParentIndex){
     clear(arg,512);
 
     arg[0] = currParentIndex;
-    itoa(currParentIndex, 16, debugOutput);
-    interrupt(0x21, 0, debugOutput, 0, 0);
 
     interrupt(0x21,2,files,0x101,0);
     interrupt(0x21,2,files+512,0x102,0);

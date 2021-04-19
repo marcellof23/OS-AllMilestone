@@ -85,9 +85,7 @@ void cat(char * filenames, unsigned char parentIdx)
         if(pathIdx>=0)
         {
             strslice(files+0x10*(files[0x10*pathIdx+1]-0x20),linkedname,2,16);
-            interrupt(0x21, 4 + 0x100*(files[0x10*(files[0x10*pathIdx+1]-0x20)]), buff, linkedname, 0);
-            interrupt(0x21, 0, buff , 0, 0);
-            interrupt(0x21,0,"\r\n", 0,0);
+            cat(linkedname,(files+0x10*(files[0x10*pathIdx+1]-0x20))[0]);
             return;
         }       
     }
