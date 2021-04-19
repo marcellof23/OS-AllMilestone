@@ -12,4 +12,6 @@ int getFilePathIdx(unsigned char parentIdx, char *filepath);
 
 void getArguments(char *argv);
 
+void deleteFolder(int idx);
+
 #endif

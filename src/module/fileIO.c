@@ -148,3 +148,45 @@ void cleanSector(int sector){
 
   writeSector(buffer, sector);
 }
+
+void deleteFile(int idx){
+  char map[512];
+  char files[1024];
+  char sectors[512];
+  int i, linked;
+
+  interrupt(0x21,2,map,0x100,0);
+  interrupt(0x21,2,sectors,0x103,0);
+  interrupt(0x21,0,"It's a file\r\n",0,0);
+  i=0;
+  while(i<64){
+      if(i!=idx && files[i*16+1]==files[idx*16+1] && files[i*16+2]!=0x0){
+          linked = 1;
+          break;
+      }
+      i++;
+  }
+  if(!linked)
+  {
+      interrupt(0x21,0,"File sector is safe to delete\r\n",0,0);
+      for(i=0;i<16;i++){
+          if(sectors[files[idx*16+1]*16+i] != 0x0 && map[sectors[files[idx*16+1]*16+i]] != 0x0){
+              cleanSector(sectors[files[idx*16+1]*16+i]);
+              map[sectors[files[idx*16+1]*16+i]] = 0x0;
+              sectors[files[idx*16+1]*16+i] = 0x0;
+          }
+      }
+  } 
+  else
+  {
+      interrupt(0x21,0,"Some file is linked to the same file\r\n",0,0);
+  }
+  for(i=0;i<16;i++){
+      files[idx*16+i] = 0x0;
+  }
+
+  interrupt(0x21,3,map,0x100,0);
+  interrupt(0x21, 3, files, 0x101, 0);
+  interrupt(0x21, 3, files+512, 0x102, 0);
+  interrupt(0x21,3,sectors,0x103,0);
+}
