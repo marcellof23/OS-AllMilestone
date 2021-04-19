@@ -2,8 +2,6 @@ void cwd(int pathIdx,char *dir);
 
 int cd(int currParentIdx, char *dirPath);
 
-void ls(unsigned char parentIndex);
-
 void autoComplete(char *filename, char parentIdx);
 
 void messageArguments(char *argv,char parentIndex);
@@ -230,35 +228,35 @@ int cd(int currParentIdx, char *dirPath) {
     return parentIdx;
 }
 
-// void autoComplete(char *filename, char parentIdx) {
-//     char files[512 * 2];
-//     char *temp;
-//     char *currFilename;
-//     int i, idxFilename, idxTemp;
-//     interrupt(0x21, 2, files, 0x101, 0);
-//     interrupt(0x21, 2, files + 512, 0x102, 0);
+void autoComplete(char *filename, char parentIdx) {
+    char files[512 * 2];
+    char *temp;
+    char *currFilename;
+    int i, idxFilename, idxTemp;
+    interrupt(0x21, 2, files, 0x101, 0);
+    interrupt(0x21, 2, files + 512, 0x102, 0);
 
-//     i = 0;
-//     while(i < 1024) {
-//         strslice(files, currFilename, i+2, i+16);
-//         if(files[i] == parentIdx && strcmp(filename, currFilename, strlen(filename))) {
-//             strslice(files, temp, i+2+strlen(filename), i+16);
-//             interrupt(0x21, 0, temp, 0, 0);
+    i = 0;
+    while(i < 1024) {
+        strslice(files, currFilename, i+2, i+16);
+        if(files[i] == parentIdx && strcmp(filename, currFilename, strlen(filename))) {
+            strslice(files, temp, i+2+strlen(filename), i+16);
+            interrupt(0x21, 0, temp, 0, 0);
 
-//             //update filename
-//             idxFilename = strlen(filename);
-//             idxTemp = 0;
-//             while(*(temp+idxTemp) != 0x0) {
-//                 *(filename+idxFilename) = *(temp+idxTemp);
-//                 idxFilename++;
-//                 idxTemp++;
-//             }
-//             *(filename+idxFilename) = 0x0;
-//             break;
-//         }
-//         i += 16;
-//     }
-// }
+            //update filename
+            idxFilename = strlen(filename);
+            idxTemp = 0;
+            while(*(temp+idxTemp) != 0x0) {
+                *(filename+idxFilename) = *(temp+idxTemp);
+                idxFilename++;
+                idxTemp++;
+            }
+            *(filename+idxFilename) = 0x0;
+            break;
+        }
+        i += 16;
+    }
+}
 
 void messageArguments(char *argv,char parentIndex){
     char files[1024];

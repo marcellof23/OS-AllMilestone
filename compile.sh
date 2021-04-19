@@ -8,6 +8,10 @@ bcc -ansi -c -o ./output/stringutil.o ./src/module/stringutil.c
 bcc -ansi -c -o ./output/fileIO.o ./src/module/fileIO.c
 bcc -ansi -c -o ./output/folderIO.o ./src/module/folderIO.c
 
+bcc -ansi -c -o ./output/shellMath.o ./src/shellModule/math.c
+bcc -ansi -c -o ./output/shellStringUtil.o ./src/shellModule/stringutil.c
+bcc -ansi -c -o ./output/shellFolderIO.o ./src/shellModule/folderIO.c
+
 bcc -ansi -c -o ./output/shell.o ./src/shell.c
 
 nasm -f as86 ./asm/kernel.asm -o ./output/kernel_asm.o
@@ -16,7 +20,7 @@ ld86 -o ./output/kernel -d ./output/kernel.o ./output/kernel_asm.o ./output/math
 nasm -f as86 ./asm/lib.asm -o ./output/lib_asm.o
 # ld86 -o ./output/lib -d ./output/lib_asm.o
 
-ld86 -o ./bin/shell -d ./output/shell.o ./output/lib_asm.o ./output/math.o ./output/stringutil.o ./output/folderIO.o
+ld86 -o ./bin/shell -d ./output/shell.o ./output/lib_asm.o ./output/shellMath.o ./output/shellStringUtil.o ./output/shellFolderIO.o
 
 ./compile_lib.sh
 

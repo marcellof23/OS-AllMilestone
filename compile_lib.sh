@@ -14,4 +14,4 @@ ld86 -o ./bin/mkdir -d ./output/mkdir.o ./output/lib_asm.o ./output/stringutil.o
 ld86 -o ./bin/mv -d ./output/mv.o ./output/lib_asm.o ./output/stringutil.o ./output/folderIO.o ./output/fileIO.o ./output/math.o
 ld86 -o ./bin/rm -d ./output/rm.o ./output/lib_asm.o ./output/stringutil.o ./output/folderIO.o ./output/fileIO.o ./output/math.o
 ld86 -o ./bin/ls -d ./output/ls.o ./output/lib_asm.o ./output/stringutil.o ./output/folderIO.o ./output/fileIO.o ./output/math.o
-ld86 -o ./bin/tictactoe -d ./output/tictactoe.o ./output/lib_asm.o ./output/stringutil.o ./output/math.o 
+ld86 -o ./bin/tictactoe -d ./output/tictactoe.o ./output/lib_asm.o ./output/stringutil.o ./output/math.o ./output/fileIO.o ./output/folderIO.o

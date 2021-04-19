@@ -155,7 +155,7 @@ void deleteFile(int idx){
   char sectors[512];
   int i;
   int linked = 0;
-  interrupt(0x21,0,"It's a file\r\n",0,0);
+  // interrupt(0x21,0,"It's a file\r\n",0,0);
 
   interrupt(0x21,2,map,0x100,0);
   interrupt(0x21, 2, files, 0x101, 0);
@@ -171,7 +171,7 @@ void deleteFile(int idx){
   }
   if(!linked)
   {
-      interrupt(0x21,0,"File sector is safe to delete\r\n",0,0);
+      // interrupt(0x21,0,"File sector is safe to delete\r\n",0,0);
       for(i=0;i<16;i++){
           if(sectors[files[idx*16+1]*16+i] != 0x0 && map[sectors[files[idx*16+1]*16+i]] != 0x0){
               cleanSector(sectors[files[idx*16+1]*16+i]);
@@ -182,7 +182,7 @@ void deleteFile(int idx){
   } 
   else
   {
-      interrupt(0x21,0,"Some file is linked to the same file\r\n",0,0);
+      // interrupt(0x21,0,"Some file is linked to the same file\r\n",0,0);
   }
   for(i=0;i<16;i++){
       files[idx*16+i] = 0x0;
