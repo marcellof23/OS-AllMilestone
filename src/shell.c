@@ -725,6 +725,7 @@ void cpRecursive(char * filenames, char parentIdx, char * src, char * dest){
     readSector(files+512, 0x102);
     idxSource = getPathIdx(parentIdx, src);
     idxDest= getFilePathIdx(parentIdx, dest);
+    
     while(i<64)
     {
         if(files[i*0x10] == idxSource && files[i*0x10 + 2] != '\0')
@@ -734,9 +735,6 @@ void cpRecursive(char * filenames, char parentIdx, char * src, char * dest){
         }
             ++i;
     }
-    // clear(strs,10);
-    // itoa(parentIdx,10,strs);
-    // interrupt(0x21,0,strs,0,0);
    
     total = j;
     for(i = 0; i<total;i++)
@@ -747,9 +745,6 @@ void cpRecursive(char * filenames, char parentIdx, char * src, char * dest){
             name[j] = files[listFiles[i]  * 0x10 + 2 + j];
         }
         copyName = getFilePathIdx(idxSource, name);
-        // clear(strs,10);
-        // itoa(idxDest,10,strs);
-        // interrupt(0x21,0,strs,0,0);
         // interrupt(0x21,0,name,0,0);
         if((unsigned char)files[copyName * 16 + 1] == 0xFF) 
         {   
@@ -766,16 +761,16 @@ void cpRecursive(char * filenames, char parentIdx, char * src, char * dest){
                     break;
                 files[y * 0x10 + x + 2] = name[x];
             }
-            // interrupt(0x21,0,name,0,0);
+            interrupt(0x21, 3, files, 0x101, 0);
+            interrupt(0x21, 3, files+512, 0x102, 0);
             
+            interrupt(0x21,0,"RECURSIVE DIPANGGIL\r\n",0,0);
             cpRecursive(filenames,y,name,dest);
         }
         else
         {
             cpFiles(filenames,parentIdx,name,dest);
         }
-        // interrupt(0x21,0,name,0,0);
-        // interrupt(0x21,0,"\r\n",0,0);
     }
 }
 
