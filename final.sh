@@ -12,5 +12,6 @@ dd if=./output/map.img of=./output/system.img bs=512 count=1 seek=256 conv=notru
 dd if=./output/files.img of=./output/system.img bs=512 count=2 seek=257 conv=notrunc
 dd if=./output/sectors.img of=./output/system.img bs=512 count=1 seek=259 conv=notrunc
 
-python3 script/installFiles.py ./bin/shell ./bin/ln ./bin/cp ./bin/cat ./bin/mv ./bin/ls ./bin/rm ./bin/mkdir ./bin/tictactoe
+python3 script/installFiles.py ./bin/shell ./bin/ln ./bin/cp ./bin/cat ./bin/mv ./bin/ls ./bin/rm ./bin/mkdir
+python3 script/installGames.py ./bin/tictactoe
 python3 script/loadfile.py misc/a.txt misc/ab.txt

@@ -98,5 +98,6 @@ def loadfile(filepath):
 
 createFolder("bin")
 createFolder("tmp")
+createFolder("game")
 for i in range(1,len(sys.argv)):
     loadfile(sys.argv[i])

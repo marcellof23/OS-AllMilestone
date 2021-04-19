@@ -122,6 +122,8 @@ int main(){
             } else if(command[0][0] == '.' && command[0][1] == '/') {
                 clear(filename, 14);
                 strcpy(filename, command[0]+2);
+                interrupt(0x21,0,filename,0,0);
+                interrupt(0x21,0,"\r\n",0,0);
                 flag = getFilePathIdx(parentIdx, filename);
                 if(flag != -2) {
                     messageArguments(filename,parentIdx);

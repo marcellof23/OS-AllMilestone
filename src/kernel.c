@@ -1,6 +1,7 @@
 #include "module/math.h"
 #include "module/stringutil.h"
 #include "module/fileIO.h"
+#include "module/folderIO.h"
 
 int VIDEO_OFFSET=0x8000;
 int VIDEO_SEGMENT=0xB000;
@@ -72,6 +73,8 @@ void executeProgram(char *filename, int segment, int *success, char parentIndex)
     char fileBuffer[512 * 16];
     char fileNotFound[32];
     int i=0;
+    char temp[10]; temp[0] = 't'; temp[1] = 'm';temp[2] ='p';temp[3] = '/';temp[4] = '~';temp[5] = 't';temp[6] = 'e';temp[7] = 'm';temp[8] = 'p';temp[9] = '\0';
+
     clear(fileNotFound,32);
     fileNotFound[0] = 'F' ; fileNotFound[1]= 'i'; fileNotFound[2] = 'l' ; fileNotFound[3]= 'e'; fileNotFound[4] = ' ' ; fileNotFound[5]= 'n'; fileNotFound[6]= 'o'; fileNotFound[7] = 't' ; fileNotFound[8]= ' '; fileNotFound[9] = 'f';fileNotFound[10] = 'o';fileNotFound[11] = 'u';fileNotFound[12] = 'n';fileNotFound[13] = 'd';fileNotFound[14] = '!'; fileNotFound[15] = '\r'; fileNotFound[16] = '\n';
     // Buka file dengan readFile
@@ -84,6 +87,7 @@ void executeProgram(char *filename, int segment, int *success, char parentIndex)
         }
         launchProgram(segment);
     } else {
+        deleteFile(getFilePathIdx(0xFF,temp));
         interrupt(0x21, 0, fileNotFound, 0,0);
     }
 }
