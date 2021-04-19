@@ -29,8 +29,8 @@ int main(){
         interrupt(0x21,0,"rm dipanggil\r\n",0,0);
         rm(command[3],parentIdx);
     } else if(argc==4){
-        interrupt(0x21,0,"rm dipanggil\r\n",0,0);
-        rmRecursive(command[3],parentIdx);
+        interrupt(0x21,0,"rm recursive dipanggil\r\n",0,0);
+        rmRecursive(command[4],parentIdx);
     }
     else{
         interrupt(0x21,0,"Usage : rm <filepath>\r\n");
@@ -57,6 +57,10 @@ void rm(char *filename,unsigned char parentIndex){
 
 
     idx = getFilePathIdx(parentIndex, filename);
+
+    itoa(idx,10,debugOutput);
+    interrupt(0x21,0,debugOutput,0,0);
+    interrupt(0x21,0,"\r\n",0,0);
 
     if(files[idx*16+1]==0xFF)
     {
@@ -93,6 +97,7 @@ void rm(char *filename,unsigned char parentIndex){
             interrupt(0x21,0,"File sector is safe to delete\r\n",0,0);
             for(i=0;i<16;i++){
                 if(sectors[files[idx*16+1]*16+i] != 0x0 && map[sectors[files[idx*16+1]*16+i]] != 0x0){
+                    cleanSector(sectors[files[idx*16+1]*16+i]);
                     map[sectors[files[idx*16+1]*16+i]] = 0x0;
                     sectors[files[idx*16+1]*16+i] = 0x0;
                 }

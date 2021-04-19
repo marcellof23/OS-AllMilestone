@@ -138,3 +138,13 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
   writeSector(files+0x200,258);
   writeSector(sectorsFile,259);
 }
+
+void cleanSector(int sector){
+  char buffer[512];
+  int i=0;
+  readSector(buffer, sector);
+
+  clear(buffer, 512);
+
+  writeSector(buffer, sector);
+}

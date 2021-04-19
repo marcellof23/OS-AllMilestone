@@ -96,6 +96,7 @@ void getArguments(char *argv){
             for(j=0;j<16;j++){
                 interrupt(0x21,2,argv+j*512,sectors[files[i*16+1]*16+j],0);
             }
+            break;
         }
         i++;
     }
