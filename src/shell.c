@@ -18,6 +18,8 @@ void shellState(char currParentIdx);
 
 void getShellState(char *argv);
 
+void removeShellState();
+
 void cpFiles(char * filenames, char parentIdx, char * src, char * dest);
 
 int main(){
@@ -62,7 +64,6 @@ int main(){
             targetDir = cd(parentIdx,command[1]);
             if(targetDir != -1) {
                 parentIdx = targetDir;
-                shellState((unsigned char) targetDir);
             } else {
                 interrupt(0x21,0, "No such directory\r\n",0,0);
             }
@@ -70,6 +71,8 @@ int main(){
             ls(parentIdx);
         }
         else{
+            removeShellState();
+            shellState((unsigned char) parentIdx);
             messageArguments(input,parentIdx);
             interrupt(0x21,0x0006,command[0],0x3000,execStatus);
         }
@@ -314,6 +317,51 @@ void getShellState(char *argv) {
     if(flag == -1) {
         argv[0] = 0xFF;
     }
+}
+
+void removeShellState() {
+    char files[1024];
+    char sectors[512];
+    char map[512];
+    char debugOutput[64];
+    int i, j;
+    int tmpIdx;
+
+    interrupt(0x21, 2, map, 0x100, 0);
+    interrupt(0x21, 2, files, 0x101, 0);
+    interrupt(0x21, 2, files+512, 0x102, 0);
+    interrupt(0x21, 2, sectors, 0x103, 0);
+
+    i=0;
+    while(i<64){
+        if(files[i*16]==0xFF && files[i*16+1]==0xFF && files[i*16+2]=='t' && files[i*16+3]=='m' && files[i*16+4]=='p' && files[i*16+5]==0x0){
+            tmpIdx = i;
+            break;
+        }
+        i++;
+    }
+
+    i=0;
+    while(i<64){
+        if(files[i*16]==(unsigned char) tmpIdx && files[i*16+1]!=0xFF && files[i*16+2]=='~' && files[i*16+3]=='s' && files[i*16+4]=='h' && files[i*16+5]=='e' && files[i*16+6]=='l' && files[i*16+7]=='l' && files[i*16+8]==0x0){
+            for(j=0;j<16;j++){
+                if(sectors[files[i*16+1]*16+j] != 0x0 && map[sectors[files[i*16+1]*16+j]] != 0x0){
+                    map[sectors[files[i*16+1]*16+j]] = 0x0;
+                    sectors[files[i*16+1]*16+j] = 0x0;
+                }
+            }
+            for(j=0;j<16;j++){
+                files[i*16+j] = 0x0;
+            }
+            break;
+        }
+        i++;
+    }
+
+    interrupt(0x21, 3, map, 0x100, 0);
+    interrupt(0x21, 3, files, 0x101, 0);
+    interrupt(0x21, 3, files+512, 0x102, 0);
+    interrupt(0x21, 3, sectors, 0x103, 0);   
 }
 
 void cat(char * filenames, unsigned char parentIdx)
