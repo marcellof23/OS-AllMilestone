@@ -153,11 +153,14 @@ void deleteFile(int idx){
   char map[512];
   char files[1024];
   char sectors[512];
-  int i, linked;
+  int i;
+  int linked = 0;
+  interrupt(0x21,0,"It's a file\r\n",0,0);
 
   interrupt(0x21,2,map,0x100,0);
+  interrupt(0x21, 2, files, 0x101, 0);
+  interrupt(0x21, 2, files+512, 0x102, 0);
   interrupt(0x21,2,sectors,0x103,0);
-  interrupt(0x21,0,"It's a file\r\n",0,0);
   i=0;
   while(i<64){
       if(i!=idx && files[i*16+1]==files[idx*16+1] && files[i*16+2]!=0x0){

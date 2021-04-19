@@ -55,15 +55,24 @@ void rm(char *filename,unsigned char parentIndex){
     int linked=0;
     int empty = 1;
 
+    interrupt(0x21,2,map,0x100,0);
+    interrupt(0x21, 2, files, 0x101, 0);
+    interrupt(0x21, 2, files+512, 0x102, 0);
+    interrupt(0x21,2,sectors,0x103,0);
+
 
     idx = getFilePathIdx(parentIndex, filename);
+
+    itoa(idx,10,debugOutput);
+    interrupt(0x21,0,debugOutput,0,0);
+    interrupt(0x21,0,"\r\n",0,0);
 
     if(files[idx*16+1]==0xFF)
     {
         deleteFolder(idx);
     } 
     else{
-        deleteFile(idx);
+        deleteFile(idx,files,map,sectors);
     }
 }
 

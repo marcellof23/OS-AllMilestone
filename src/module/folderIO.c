@@ -105,12 +105,12 @@ void getArguments(char *argv){
 
 void deleteFolder(int idx){
     int i;
-    char files[1024];
     int empty = 1;
+    char files[1024];
+    interrupt(0x21,0,"It's a folder\r\n",0,0);
 
     interrupt(0x21, 2, files, 0x101, 0);
     interrupt(0x21, 2, files+512, 0x102, 0);
-    interrupt(0x21,0,"It's a folder\r\n",0,0);
     
     for(i=0;i<64;i++){
         if(files[i*16]==idx && !isempty(files+i*16,16)){
@@ -126,6 +126,7 @@ void deleteFolder(int idx){
     } else{
         interrupt(0x21,0,"Folder is not empty, try using -r flag\r\n",0,0);
     }
+
     interrupt(0x21, 3, files, 0x101, 0);
     interrupt(0x21, 3, files+512, 0x102, 0);
 }
