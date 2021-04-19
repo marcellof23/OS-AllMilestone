@@ -16,7 +16,7 @@ int main(){
     int i, j, commandCount, historyCount, historyIdx = 0, idx, flag;
     int tabPressed = 0, arrowPressed = 0;
     char input[512];
-    char filename[14];
+    char filepath[128];
     char temp[512];
     char history[512];
     char command[8][64];
@@ -24,13 +24,16 @@ int main(){
     int targetDir;
     char dir[128];
     char currShellState[8192];
+    char execParent[1024];
     char debugOutput[512];
+    char filename[15];
 
     char execStatus[16];
 
     clear(input,512);
     clear(currShellState, 8192);
     clear(history, 512);
+    clear(execParent,1024);
 
     getShellState(currShellState);
 
@@ -120,16 +123,25 @@ int main(){
                     interrupt(0x21,0, "No such directory\r\n",0,0);
                 }
             } else if(command[0][0] == '.' && command[0][1] == '/') {
-                clear(filename, 14);
-                strcpy(filename, command[0]+2);
-                interrupt(0x21,0,filename,0,0);
-                interrupt(0x21,0,"\r\n",0,0);
-                flag = getFilePathIdx(parentIdx, filename);
+                clear(filepath, 128);
+                strcpy(filepath, command[0]+2);
+                flag = getFilePathIdx(parentIdx, filepath);
+
                 if(flag != -2) {
-                    messageArguments(filename,parentIdx);
-                    interrupt(0x21,0x0006,filename,0x3000,execStatus);
+                    messageArguments(filepath,parentIdx);
+                    interrupt(0x21,2,execParent,0x101,0);
+                    interrupt(0x21,2,execParent+512,0x102,0);
+                    i = 127;
+                    while(filepath[i]!='/' && i>=0){
+                        i--;
+                    }
+                    clear(filename,15);
+
+                    strslice(filepath,filename,i+1,15);
+
+                    interrupt(0x21,(execParent[flag*16]<<8)+0x06,filename,0x3000,execStatus);
                 } else {
-                    interrupt(0x21, 0, "File not found!\r\n", 0, 0);
+                    interrupt(0x21, 0, "Executable not found!\r\n", 0, 0);
                 }
             } else {
                 messageArguments(input,parentIdx);

@@ -1,54 +1,54 @@
 #include "stringutil.h"
 
-// void itoa(int num, int basis, char * output) 
-// { 
-//     int i = 0; 
-//     int isMinus = 0; 
-//     char str[100]; 
-//     int x,s,e,rem;
-//     if (num == 0) 
-//     { 
-//         str[i++] = '0'; 
-//         str[i] = '\0'; 
-//         x = 0;
-//         while(str[x] != '\0')
-//    *output++ = str[x++];
-//   *output = '\0';
-//         return;
-//     } 
+void itoa(int num, int basis, char * output) 
+{ 
+    int i = 0; 
+    int isMinus = 0; 
+    char str[100]; 
+    int x,s,e,rem;
+    if (num == 0) 
+    { 
+        str[i++] = '0'; 
+        str[i] = '\0'; 
+        x = 0;
+        while(str[x] != '\0')
+   *output++ = str[x++];
+  *output = '\0';
+        return;
+    } 
   
-//     if (num < 0 && basis == 10) 
-//     { 
-//         isMinus = 1; 
-//         num *= -1; 
-//     } 
-//     while (num != 0) 
-//     { 
-//         rem = mod(num, basis); 
-//         str[i++] = (rem > 9)? (rem-10) + 'a' : rem + '0'; 
-//         num = num/basis; 
-//     } 
+    if (num < 0 && basis == 10) 
+    { 
+        isMinus = 1; 
+        num *= -1; 
+    } 
+    while (num != 0) 
+    { 
+        rem = mod(num, basis); 
+        str[i++] = (rem > 9)? (rem-10) + 'a' : rem + '0'; 
+        num = num/basis; 
+    } 
   
-//     if (isMinus) 
-//         str[i++] = '-'; 
+    if (isMinus) 
+        str[i++] = '-'; 
   
-//     str[i] = '\0';
-//     s = 0; 
-//     e = i -1; 
-//     while (s < e) 
-//     { 
-//         char tmp = *(str+s);
-//         *(str+s) = *(str+e);
-//         *(str+e) = tmp;
-//         s++; 
-//         e--; 
-//     }
-//     x = 0;
-//     while(str[x] != '\0')
-//   *output++ = str[x++];
-//  *output = '\0';
-//     return;
-// } 
+    str[i] = '\0';
+    s = 0; 
+    e = i -1; 
+    while (s < e) 
+    { 
+        char tmp = *(str+s);
+        *(str+s) = *(str+e);
+        *(str+e) = tmp;
+        s++; 
+        e--; 
+    }
+    x = 0;
+    while(str[x] != '\0')
+  *output++ = str[x++];
+ *output = '\0';
+    return;
+} 
 
 int strcmp(char *string1,char *string2,int length) // Returns 1 if equal , 0 if not equal
 {
