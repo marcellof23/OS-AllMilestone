@@ -674,7 +674,7 @@ void cpFiles(char * filenames, char parentIdx, char * src, char * dest)  {
    
 }
 
-void cp(char * filenames, char parentIdx, char * src, char * dest) {
+void cp(char * buf, char parentIdx, char * src, char * dest) {
     char files[1024];
     int i=0;
     int idxSrc,idxDest;
@@ -686,7 +686,6 @@ void cp(char * filenames, char parentIdx, char * src, char * dest) {
     idxSrc = getFilePathIdx(parentIdx, src);
     idxDest = getFilePathIdx(parentIdx, dest);
     mkdir(src,idxDest);
-    cponly(filenames, idxSrc, src,dest);
 
     for(i=0;i<64;i++){
         if(files[i*16]==idxSrc){
@@ -696,24 +695,24 @@ void cp(char * filenames, char parentIdx, char * src, char * dest) {
             if(files[i*16 + 1] == 0xFF)
             {
                 mkdir(src,idxDest);
-                cp( childFilename, idxDest,  childFilename, src);
+                cp( buf, idxDest,  childFilename, src);
             
             }
             else
             {
-                cponly( childFilename, idxDest,  childFilename, src);
+                cponly( buf, idxDest,  childFilename, src);
             }
             clear(childFilename,14);
         }
     }
-
+    cponly( buf, idxDest,  childFilename, src);
     
 
 }
 
 void cpRecursive(char * filenames, char parentIdx, char * src, char * dest){
     char files[1024];
-    int idxFolder,n,i,j = 0,row,total = 0,idxList,x,y;
+    int idxFolder,n,i = 0,j = 0,row,total = 0,idxList,x,y;
     char name[14];
     char listFiles[64],strs[10];
     int idxDest = 0, idxSource = 0,folderExist = 0,copyName = 0;
@@ -727,7 +726,7 @@ void cpRecursive(char * filenames, char parentIdx, char * src, char * dest){
     {
         if(files[i*0x10] == idxSource && files[i*0x10 + 2] != '\0')
         {
-            *(listFiles+j) = i;
+            listFiles[j] = i;
             j++;  
         }
             ++i;
@@ -760,8 +759,6 @@ void cpRecursive(char * filenames, char parentIdx, char * src, char * dest){
             }
             interrupt(0x21, 3, files, 0x101, 0);
             interrupt(0x21, 3, files+512, 0x102, 0);
-            
-            interrupt(0x21,0,"RECURSIVE DIPANGGIL\r\n",0,0);
             cpRecursive(filenames,y,name,dest);
         }
         else
@@ -906,7 +903,7 @@ void shell(){
             {
                 
                 if(strcmp(command[1],"-r",strlen(command[1])) && strlen(command[1])==2){
-                    cpRecursive(buf, parentIdx, command[2], command[3]);
+                    cp(buf, parentIdx, command[2], command[3]);
                 } else{
                     idxS = getFilePathIdx(parentIdx, command[1]);
                     idxD = getFilePathIdx(parentIdx, command[2]);
