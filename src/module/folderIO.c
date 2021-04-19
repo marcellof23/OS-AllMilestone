@@ -94,7 +94,6 @@ void getArguments(char *argv){
     while(i<64){
         if(files[i*16]==parentIndex && files[i*16+2]=='~' && files[i*16+3]=='t'){
             for(j=0;j<16;j++){
-                interrupt(0x21,0,"HAHAHAHA\r\n",0,0);
                 interrupt(0x21,2,argv+j*512,sectors[files[i*16+1]*16+j],0);
             }
         }

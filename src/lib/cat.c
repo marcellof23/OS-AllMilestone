@@ -7,11 +7,30 @@ void cat(char * filenames,unsigned char dir);
 int main(){
     char buffer[512*16];
     char execStatus[16];
+    char command[16][64];
+    char argc,parentIdx;
+    int commandCount,i;
+
+    char debugOutput[128];
+
     clear(buffer,512*16);
-    interrupt(0x21,0,"cat dipanggil\r\n",0,0);
+
     getArguments(buffer);
-    interrupt(0x21,0,buffer,0,0);
-    interrupt(0x21,0,"\r\n",0,0);
+
+    commandCount = strsplit(buffer,' ',command);
+
+    argc = command[0][0];
+    parentIdx = command[1][0];
+
+    if(argc!=3){
+        interrupt(0x21,0,"Usage : cat <filepath>");
+    } else{
+        cat(command[3], parentIdx);
+    }
+
+    // interrupt(0x21,0,buffer,0,0);
+    // interrupt(0x21,0,"\r\n",0,0);
+
     interrupt(0x21,0x0006,"shell",0x3000,execStatus);
     return 1;
 }
