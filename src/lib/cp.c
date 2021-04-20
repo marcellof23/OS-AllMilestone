@@ -7,101 +7,70 @@ int main(){
 
 // void cpFiles(char * filenames, char parentIdx, char * src, char * dest)  {
 //     int idx,res;
+//     char strs[10];
 //     readFile(filenames,src,&res, parentIdx);
-//     idx = getPathIdx(parentIdx, dest);
-//     writeFile(filenames,src,&res, idx);
-// }
-
-// void cp(char * filenames, char parentIdx, char * src, char * dest) {
-//     char files[1024];
-//     int idxFolder,n,i,row,cnt;
-//     char nama[14];
-//     char curFile[14];
-//     int isFolder = 0,folderExist = 0;
-//     int itr = 0;
-//     readSector(files, 0x101);
-//     readSector(files+512, 0x102);
-
-//     while(itr < 1024) {
-//         strslice(files, curFile, itr+2, itr+16);
-//         if(strcmp(src, curFile, strlen(filenames)) && strlen(src) == strlen(curFile)) {
-//             if((unsigned char)files[itr+1] == 0xFF) {
-//                 isFolder = 1;
-//             }
-//         }
-//         itr+= 16;
-//     }
-    
-//     for(row = 0;row<64;row++) 
+//     idx = getFilePathIdx(parentIdx, dest);
+//     if(idx == -2)
 //     {
-//         if((files[row*16] == parentIdx) && (files[row * 16 + 2] != 0x0) )
-//         {
-//             cnt++;
-//         }
+//         writeFile(filenames,dest,&res, parentIdx);
 //     }
-//     n = cnt;
-//     idxFolder = getPathIdx(parentIdx, dest);
-//     mkdir(src,idxFolder);
-//     // i = 0;
-//     // while(i<0x40)
-//     // {
-//     //     if(files[i * 0x10] == parentIdx && (strcmp(dest,files + (i * 16) + 2 ,14) == 1) )
-//     //     {
-//     //         folderExist = 1;
-//     //         break;
-//     //     }
-//     //     i++;
-//     // }
-//     // if(folderExist)
-//     // {
-
-//     // }
-//     // else
-//     // {
-//             //mkdir
-//     // }
-        
-//     for(i = 0; i<n;i++) {
-//         if(!isFolder) {
-//             cpFiles(filenames,idxFolder,nama,src);
-//         }
-//         else {
-//             cp(filenames,idxFolder,nama,src);
-//         }
+//     else 
+//     {
+//         writeFile(filenames,src,&res, idx);
 //     }
-
+   
 // }
 
-// void cpRecursive(char * filenames, char parentIdx, char * src, char * dest){
+// void cponly(char * filenames, char parentIdx1,char parentIdx2, char * src, char * dest)  {
+//     int idx,res;
+//     char strs[10];
+//     readFile(filenames,src,&res, parentIdx1);
+//     idx = getFilePathIdx(parentIdx2, dest);
+//     if(idx == -2)
+//     {
+//         writeFile(filenames,dest,&res, parentIdx2);
+//     }
+//     else 
+//     {
+//         writeFile(filenames,src,&res, idx);
+//     }
+// }
+
+// void cp(char * buf, char parentIdx1 , char parentIdx2, char * src, char * dest) {
 //     char files[1024];
-//     int i=0;
-//     int idx,idxsrc,idxdest;
-//     char childFilename[14],char1[14],char2[14];
+//     int i=0,total = 0,j = 0;
+//     int idxSrc,idxDest;
+//     char childFilename[14];
+//     char listFiles[64];
+//     interrupt(0x21, 2, files, 0x101, 0);
+//     interrupt(0x21, 2, files+512, 0x102, 0);
 
-//     readSector(files, 0x101);
-//     readSector(files+512, 0x102);
-
-//     idx = getFilePathIdx(parentIdx, filenames);
-//     idxsrc = getFilePathIdx(parentIdx, src);
-//     idxdest = getFilePathIdx(parentIdx, dest);
+//     idxSrc = getFilePathIdx(parentIdx1, src);
+//     idxDest = getFilePathIdx(parentIdx2, dest);
+//     mkdir(src,idxDest);
 //     for(i=0;i<64;i++){
-//         if(files[i*16]==idxsrc){
-//             strslice(files+i*16,char1,2,16);
-//         }
-//     }
-//     for(i=0;i<64;i++){
-//         if(files[i*16]==idxdest){
-//             strslice(files+i*16,char2,2,16);
-//         }
-//     }
-//     for(i=0;i<64;i++){
-//         if(files[i*16]==idx){
+//         if(files[i*16]==idxSrc){
 //             strslice(files+i*16,childFilename,2,16);
 //             interrupt(0x21,0,childFilename,0,0);
 //             interrupt(0x21,0,"\r\n",0,0);
-//             cpRecursive(childFilename, idx, char1, char2);
-//             clear(childFilename,14);
+//             if(files[i*16 +2] != '\0')
+//             {
+//                 if(files[i*16 + 1] == 0xFF)
+//                 {
+//                     cp( buf, idxSrc , idxDest,  childFilename, src);
+                
+//                 }
+//                 else
+//                 {
+//                     cponly( buf, idxSrc, idxDest,  childFilename, src);
+//                 }
+//                 clear(childFilename,14);
+//             }
+            
 //         }
 //     }
-//     cp(filenames, idx, char1, char2);
+    
+
 // }
+// ini buat manggilnya ntar
+// cp(buf, parentIdx, parentIdx, command[2], command[3]);
