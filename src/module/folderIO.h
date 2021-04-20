@@ -14,4 +14,5 @@ void getArguments(char *argv);
 
 void deleteFolder(int idx);
 
+void createFolder( char *filenames,unsigned char parentIndex);
 #endif

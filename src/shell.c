@@ -297,7 +297,7 @@ void autoComplete(char *filename, char parentIdx) {
     i = 0;
     while(i < 1024) {
         strslice(files, currFilename, i+2, i+16);
-        if(files[i] == parentIdx && strcmp(filename, currFilename, strlen(filename))) {
+        if(files[i] == parentIdx && strcmp(filename, currFilename, strlen(filename)) ) {
             strslice(files, temp, i+2+strlen(filename), i+16);
             interrupt(0x21, 0, temp, 0, 0);
 
