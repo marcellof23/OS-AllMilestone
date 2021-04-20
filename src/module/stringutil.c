@@ -50,7 +50,7 @@ void itoa(int num, int basis, char * output)
     return;
 } 
 
-int strcmp(char *string1,char *string2,int length) // Returns 1 if equal , 0 if not equal
+int strcmp(char *string1,char *string2, int length) // Returns 1 if equal , 0 if not equal
 {
   int i = 0;
   while(i<length)

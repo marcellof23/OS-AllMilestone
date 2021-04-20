@@ -45,15 +45,15 @@ int main(){
 void cpFiles(char * filenames, char parentIdx, char * src, char * dest)  {
     int idx,res;
     char strs[10];
-    readFile(filenames,src,&res, parentIdx);
+    interrupt(0x21,(parentIdx << 8) + 0x4,filenames,src,&res);
     idx = getFilePathIdx(parentIdx, dest);
     if(idx == -2)
     {
-        writeFile(filenames,dest,&res, parentIdx);
+        interrupt(0x21,(parentIdx << 8) + 0x5,filenames,src,&res);
     }
     else 
     {
-        writeFile(filenames,src,&res, idx);
+        interrupt(0x21,(idx << 8) + 0x5,filenames,src,&res);
     }
    
 }
@@ -61,15 +61,15 @@ void cpFiles(char * filenames, char parentIdx, char * src, char * dest)  {
 void cponly(char * filenames, char parentIdx1,char parentIdx2, char * src, char * dest)  {
     int idx,res;
     char strs[10];
-    readFile(filenames,src,&res, parentIdx1);
+    interrupt(0x21,(parentIdx1 << 8) + 0x4,filenames,src,&res);
     idx = getFilePathIdx(parentIdx2, dest);
     if(idx == -2)
     {
-        writeFile(filenames,dest,&res, parentIdx2);
+        interrupt(0x21,(parentIdx2 << 8) + 0x5,filenames,src,&res);
     }
     else 
     {
-        writeFile(filenames,src,&res, idx);
+        interrupt(0x21,(idx << 8) + 0x5,filenames,src,&res);
     }
 }
 
@@ -88,8 +88,6 @@ void cp(char * buf, char parentIdx1 , char parentIdx2, char * src, char * dest) 
     for(i=0;i<64;i++){
         if(files[i*16]==idxSrc){
             strslice(files+i*16,childFilename,2,16);
-            interrupt(0x21,0,childFilename,0,0);
-            interrupt(0x21,0,"\r\n",0,0);
             if(files[i*16 +2] != '\0')
             {
                 if(files[i*16 + 1] == 0xFF)
