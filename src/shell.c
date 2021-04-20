@@ -13,7 +13,7 @@ void getShellState(char *argv);
 void removeShellState();
 
 int main(){
-    int i, j, commandCount, historyCount, historyIdx = 0, idx, flag;
+    int i, j, commandCount, historyCount, historyIdx = 0, idx, flag, count;
     int tabPressed = 0, arrowPressed = 0;
     char input[512];
     char filepath[128];
@@ -61,7 +61,47 @@ int main(){
         interrupt(0x21,1,input,0,0);
         commandCount = strsplit(input,' ',command);
 
-        if((input[0] == 0x00 && input[1] != 0x00)) {
+        if(command[commandCount-1][strlen(command[commandCount-1])-1] == 0x09) {
+            
+            //catet posisi terakhir input
+            count = 0;
+            for(i = 0; i < commandCount; i++) {
+                count += strlen(command[i]);
+            }
+            count += commandCount - 2;
+
+            //catet posisi terakhir command
+            j = strlen(command[commandCount-1])-1;
+
+            command[commandCount-1][strlen(command[commandCount-1])-1] = 0x0;
+            if(command[commandCount-1][0] == '.' && command[commandCount-1][1] == '/') {
+                autoComplete(command[commandCount-1]+2, parentIdx);
+            } else {
+                autoComplete(command[commandCount-1], parentIdx);
+            }
+            
+            
+            //update input
+            i = count;
+            while(j < strlen(command[commandCount-1])) {
+                input[i] = command[commandCount-1][j];
+                i++;
+                j++;
+            }
+
+            input[i] = 0x0;
+            for(idx = 0; idx < strlen(input); idx++) {
+                temp[idx] = input[idx];
+            }
+            temp[strlen(input)] = 0x0;
+
+            //overwrite input, add payload to input[0] and input[1]
+            input[0] = 0xFF;
+            input[1] = 0xFF;
+            strslice(temp, input+2, 0, strlen(temp));
+            input[2+strlen(temp)] = 0x0;
+            tabPressed = 1;
+        } else if((input[0] == 0x00 && input[1] != 0x00)) {
             // arrow down
             if(input[1] == 0x50)
             {
@@ -97,8 +137,9 @@ int main(){
             }
             arrowPressed = 1;
         } else {
-            interrupt(0x21,0,"\r\n",0,0);
+            interrupt(0x21, 0, "\r\n", 0, 0);
             arrowPressed = 0;
+            tabPressed = 0;
             // add history
             if(historyCount < 4) {
                 strcpy(history+historyCount*128, input);
@@ -244,11 +285,14 @@ int cd(int currParentIdx, char *dirPath) {
 
 void autoComplete(char *filename, char parentIdx) {
     char files[512 * 2];
-    char *temp;
-    char *currFilename;
+    char temp[16];
+    char currFilename[16];
     int i, idxFilename, idxTemp;
     interrupt(0x21, 2, files, 0x101, 0);
     interrupt(0x21, 2, files + 512, 0x102, 0);
+
+    clear(temp, 16);
+    clear(currFilename, 16);
 
     i = 0;
     while(i < 1024) {
@@ -260,12 +304,12 @@ void autoComplete(char *filename, char parentIdx) {
             //update filename
             idxFilename = strlen(filename);
             idxTemp = 0;
-            while(*(temp+idxTemp) != 0x0) {
-                *(filename+idxFilename) = *(temp+idxTemp);
+            while(temp[idxTemp] != 0x0) {
+                filename[idxFilename] = temp[idxTemp];
                 idxFilename++;
                 idxTemp++;
             }
-            *(filename+idxFilename) = 0x0;
+            filename[idxFilename] = 0x0;
             break;
         }
         i += 16;
