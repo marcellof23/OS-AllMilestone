@@ -46,15 +46,12 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
   char sectorsFile[512];
 
   char debugOutput[128];
-  char crlf[3];
 
   char cache[512];
 
   int i,j,k,sectorsNeeded , sectorsAvailable,sectorIndex, filesIndex;
 
   int z=0;
-
-  crlf[0] = '\r'; crlf[1] = '\n'; crlf[2] = '\0'; 
 
   filesIndex = -1;
 
@@ -68,6 +65,18 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
   i=0;
   while(buffer[i]!=0x0){
     i++;
+  }
+
+  for(i=0;i<64;i++){
+    if(strcmp(path,files+i*16,16)){
+      *sectors = -1;
+      return;
+    }
+  }
+
+  if(files[parentIndex*16+1]!=0xFF){
+    *sectors = -4;
+    return;
   }
 
   sectorsNeeded = div(i,512) + 1;
@@ -119,11 +128,11 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
         }
       }
     } else{
-      interrupt(0x21,0,"No slot for file\r\n",0,0);
+      *sectors = -2;
     }
   }
   else{
-    interrupt(0x21,0,"Not enough sectors\r\n",0,0);
+    *sectors = -3;
   }
 
   interrupt(0x21,3,map,0x100,0);
