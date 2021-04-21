@@ -1,5 +1,3 @@
-# This script are meant to be run individually, separated from the Operating System
-
 import os
 import sys
 
@@ -59,8 +57,13 @@ def loadfile(filepath):
                     sector[i*16+j] = sectors[j]
                 break
         
+        gameIndex = 0
+        for i in range(64):
+            if(files[i*16:(i+1)*16]==bytearray(b'\xFF\xFF\x67\x61\x6d\x65\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')):
+                gameIndex = i
+        
         system[259*512:260*512] = sector
-        files[filesectorindex*16] = 0xFF
+        files[filesectorindex*16] = gameIndex
         files[filesectorindex*16+1] = sectorsindex
         for i in range(len(filename)):
             files[filesectorindex*16+2+i] = ord(filename[i])

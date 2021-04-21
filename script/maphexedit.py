@@ -3,7 +3,7 @@ with open("./output/map.img", 'rb') as f:
 
 print(len(data))
 filleddata = [0 for i in range(512)]
-n = 61 #Nbytes to fill
+n = 17 #Nbytes to fill
 for i in range(n):
     filleddata[i] = 0xFF
 

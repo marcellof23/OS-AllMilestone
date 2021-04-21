@@ -1,33 +1,39 @@
-#include "utilities.h"
-#include "shell.h"
+#include "module/math.h"
+#include "module/stringutil.h"
+#include "module/fileIO.h"
+#include "module/folderIO.h"
 
 int VIDEO_OFFSET=0x8000;
 int VIDEO_SEGMENT=0xB000;
 int VIDEO_SCREEN_SIZE = 4000;
 
 void handleInterrupt21 (int AX, int BX, int CX, int DX);
-void printString(char *string);
-void printStringNoNewline(char *string);
-void readString(char *string);
-void printOSName();
+
 void cls(int displaymode);
-void readSector(char *buffer,int sector);
-void writeSector(char *buffer,int sector);
-void readFile(char *buffer, char *path, int *sectors, char parentIndex);
-void writeFile(char *buffer, char *path, int *sectors, char parentIndex);
+
 void executeProgram(char *filename, int segment, int *success, char parentIndex);
 
 
 int main () {
+  char execStatus[16];
+
   makeInterrupt21();
+
   cls(3);
-  shell();
-  while (1);
+
+  interrupt(0x21,0x0006,"shell",0x3000,execStatus);
+  while(1);
 }
 
 
 void handleInterrupt21 (int AX, int BX, int CX, int DX){
+  char invalid[32];
   char AL, AH;
+
+  clear(invalid,32);
+
+  invalid[0] = 'I';invalid[1] = 'n';invalid[2] = 'v';invalid[3] = 'a';invalid[4] = 'l';invalid[5] = 'i';invalid[6] = 'd';
+
   AL = (char) (AX);
   AH = (char) (AX >> 8);
   switch (AL) {
@@ -47,412 +53,41 @@ void handleInterrupt21 (int AX, int BX, int CX, int DX){
       readFile(BX, CX, DX, AH);
       break;
     case 0x05:
-      writeFile(BX, CX, DX, AH);
+      writeFile(BX, CX, DX, AH); //void writeFile(char *buffer, char *path, int *sectors, char parentIndex);
       break;
     case 0x6:
       executeProgram(BX, CX, DX, AH);
       break;
     default:
-      printString("Invalid interrupt");
+      interrupt(0x21,0,invalid,0,0);
   }
-}
-
-void printString(char *string){
-  int i=0;
-  while(*(string+i)!='\0'){
-    interrupt(0x10,0xe00 + *(string+i),0,0,0);
-    i++;
-  }
-  // interrupt(0x10,0xe00 + '\n',0,0,0);
-  // interrupt(0x10,0xe00 + '\r',0,0,0);
-}
-
-void printStringNoNewline(char *string){
-  int i=0;
-  while(*(string+i)!='\0'){
-    interrupt(0x10,0xe00 + *(string+i),0,0,0);
-    i++;
-  }
-}
-
-void readString(char *string){
-  int input, i, j, idx, test, copyIdx;
-  char filename[14];
-  int high, low;
-  i = 0;
-  input = interrupt(0x16, 0x0000, 0, 0, 0);
-
-  //Check payload, if there is payload then update string first
-  if(string[0] == 0xFF && string[1] == 0xFF) {
-    copyIdx = strlen(string) - 2;
-    while(i < copyIdx) {
-      string[i] = string[i+2];
-      i++;
-    }
-  }
-
-  high = input >> 8;
-  low = input & 0x00FF; 
-  
-  while(low != 0x0d && low != 0x09 && high != 0x48 && high != 0x50) {
-    if(low != 0x08){
-      *(string+i) = low;
-      i++;
-
-      interrupt(0x10, 0x0e00 + low, 0, 0, 0);
-    } else if(i > 0){
-      interrupt(0x10, 0x0e00 + low, 0, 0, 0);
-      interrupt(0x10, 0x0e00 + 0x0, 0, 0, 0);
-      interrupt(0x10, 0x0e00 + low, 0, 0, 0);
-      *(string+i-1) = 0x0;
-      i--;
-    }
-    input = interrupt(0x16, 0x0000, 0, 0, 0);
-    high = input >> 8;
-    low = input & 0x00FF;
-  }
-
-  if(low == 0x00) {
-    while(i > 0) {
-      interrupt(0x10, 0x0e00 + 0x08, 0, 0, 0);
-      interrupt(0x10, 0x0e00 + 0x0, 0, 0, 0);
-      interrupt(0x10, 0x0e00 + 0x08, 0, 0, 0);
-      *(string+i-1) = 0x0;
-      i--;
-    }
-    string[0] = 0x00;
-    string[1] = high;
-    return;
-  } else if(low == 0x09) {
-    *(string+i) = 0x09;
-    i++;
-    *(string+i) = 0x0;
-    return;
-  }
-
-  *(string+i) = 0x0;
-
-  printString("\n");
-  printString("\r");
 }
 
 void cls(int displaymode){
   interrupt(0x10,displaymode,0,0,0);
 }
 
-void printOSName(){
-  printString(" /$$$$$$$ /$$  \r\n");
-  printString("| $$__  $|__/ \r\n");
-  printString("| $$  \\ $$/$$ /$$$$$$ \r\n");
-  printString("| $$$$$$$| $$/$$__  $$   \r\n");
-  printString("| $$____/| $| $$$$$$$$ \r\n");
-  printString("| $$     | $| $$_____/ \r\n");
-  printString("| $$     | $|  $$$$$$$ \r\n");
-  printString("|/$$     |/$$\\_______/   \r\n");
-  printString("| $$$    /$$$    \r\n");
-  printString("| $$$$  /$$$$ /$$$$$$  /$$$$$$ /$$$$$$$\r\n");
-  printString("| $$ $$/$$ $$/$$__  $$/$$__  $| $$__  $$\r\n");
-  printString("| $$  $$$| $| $$  \\ $| $$  \\ $| $$  \\ $$\r\n");
-  printString("| $$\\  $ | $| $$  | $| $$  | $| $$  | $$\r\n");
-  printString("| $$ \\/  | $|  $$$$$$|  $$$$$$| $$  | $$\r\n");
-  printString("|_/$$$$$$|_/$$$$$$__/ \\______/|__/  |__/\r\n");
-  printString(" /$$__  $$/$$__  $$ \r\n");
-  printString("| $$  \\ $| $$  \\__/ \r\n");
-  printString("| $$  | $|  $$$$$$    \r\n");
-  printString("| $$  | $$\\____  $$  \r\n");
-  printString("| $$  | $$/$$  \\ $$  \r\n");
-  printString("|  $$$$$$|  $$$$$$/  \r\n");
-  printString(" \\______/ \\______/  \r\n");
-}
-
-void readSector(char *buffer,int sector) {
-  interrupt(0x13, 0x201, buffer, div(sector,36)*0x100 + mod(sector,18) + 1, mod(div(sector,18),2)*0x100);
-}
-void writeSector(char *buffer,int sector) {
-  interrupt(0x13, 0x301, buffer, div(sector,36)*0x100 + mod(sector,18) + 1, mod(div(sector,18),2)*0x100);
-}
-
-void readFile(char *buffer, char *path, int *result, char parentIndex) //      readFile(BX, CX, DX, AH);
-{
-  char files[1024];
-  char sectorsFile[512];
-  char fileName[14];
-  int i=0;
-  int j;
-  int found=0;
-
-  readSector(files,0x101);
-  readSector(files+0x200,0x102);
-  readSector(sectorsFile,0x103);
-
-  while(i<1024 && !found){
-    strslice(files,fileName,i+2,i+16);
-    if(files[i] == parentIndex && (unsigned char)files[i+1] != 0xFF && strcmp(fileName,path,14)){
-      found = 1;
-      for(j=0;j<16;j++){
-        if(sectorsFile[files[i+1]*16+j] != 0x0){
-          readSector(buffer+j*512, sectorsFile[files[i+1]*16+j]);
-        } else{
-          clear(buffer+j*512, 512);
-        }
-      }
-    }
-    i+=16;
-  }
-
-  if(!found){
-    *result = -1; 
-  } else{
-    *result = 1;
-  }
-}
-// InitIdx = j * 0x10;
-// files[InitIdx] = parentIndex;
-// files[InitIdx + 1] = 0xFF;
-int SearchFilenames(char * files, char * filename, char parentIdx, int isFolder) 
-{
-  int idxFiles = 0;
-  while(idxFiles < 64) {
-    if(files[idxFiles * 0x10] == parentIdx) {
-      if(isFolder && (unsigned char)files[idxFiles * 0x10 + 1] == 0xFF) 
-      {
-        if(strcmp(filename,files + (0x10*idxFiles) + 2,14))
-          break;
-      }
-      else if(!isFolder && (unsigned char)files[idxFiles * 0x10 + 1] == 0xFF) 
-      {
-        if(strcmp(filename,files + (0x10*idxFiles) + 2,14))
-          break;
-      }
-    }
-    idxFiles++;
-  } 
-  if(idxFiles == 64)
-  {
-    return -1;
-  }
-  else 
-  {
-    return idxFiles;
-  }
-}
-void writeFile(char *buffer, char *path, int *sectors, char parentIndex) 
-{
-  char map[512];
-  char files[1024];
-  char sectorsFile[512];
-
-  char debugOutput[128];
-  char crlf[3];
-
-  char cache[512];
-
-  int i,j,k,sectorsNeeded , sectorsAvailable,sectorIndex, filesIndex;
-
-  int z=0;
-
-  crlf[0] = '\r'; crlf[1] = '\n'; crlf[2] = '\0'; 
-
-  filesIndex = -1;
-
-  sectorsAvailable = 0;
-
-  readSector(map,0x100);
-  readSector(files,0x101);
-  readSector(files+0x200,0x102);
-  readSector(sectorsFile,0x103);
-
-  i=0;
-  while(buffer[i]!=0x0){
-    i++;
-  }
-
-  sectorsNeeded = div(i,512) + 1;
-  for(i=0;i<256;i++){
-    if(map[i]!=0x0){
-      sectorsAvailable++;
-    }
-  }
-
-  if(sectorsAvailable>=sectorsNeeded){
-    for(i=0;i<64;i++){
-      if(isempty(files+i*16, 16)){
-        filesIndex = i;
-        break;
-      }
-    }
-    if(filesIndex!=-1){
-      for(i=0;i<32;i++){
-        if(isempty(sectorsFile+i*16,16)){
-          sectorIndex = i;
-          j = 0;
-          k = 0;
-
-          while(j<256 && k<sectorsNeeded){
-            if(map[j]==0x0){
-              map[j] = 0xFF;
-              sectorsFile[sectorIndex*16+k] = j;
-
-              readSector(cache, j);
-              for(z=0;z<512;z++){
-                  cache[z] = buffer[k*512+z];
-              }
-              writeSector(cache, j);
-
-              k++;
-            }
-            j++;
-          }
-
-          files[filesIndex*16] = parentIndex;
-          files[filesIndex*16+1] = sectorIndex;
-
-          j=2;
-          while(j<16 && path[j-2]!=0x0){
-            files[filesIndex*16+j] = path[j-2];
-            j++;
-          }
-          break;
-        }
-      }
-    } else{
-      interrupt(0x21,0,"No slot for file\r\n",0,0);
-    }
-  }
-  else{
-    interrupt(0x21,0,"Not enough sectors\r\n",0,0);
-  }
-
-  writeSector(map,256);
-  writeSector(files,257);
-  writeSector(files+0x200,258);
-  writeSector(sectorsFile,259);
-}
-// void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
-// {
-//   char map[512];
-//   char files[1024];
-//   char sectorsFile[512];
-//   int emptyIndex = 0;
-//   int totalSector=0;
-//   int i, j;
-//   int sektorkosong,tulis_sektor;
-
-//   readSector(map,0x100);
-//   readSector(files,0x101);
-//   readSector(files+0x200,0x102);
-//   readSector(sectorsFile,0x103);
-  
-//   for(i=0;i<64;i++)
-//   {
-//     // filenya udah ada
-//     if((files[0x10*i] == parentIndex) && strcmp(path,files + (0x10*i) + 2,14))
-//     {
-//       *sectorsFile = -1;
-//       return;
-//     }
-//   }
-//   while(emptyIndex < 64)
-//   {
-//     if(files[emptyIndex * 0x10 + 2] == '\0')
-//       break;
-//     emptyIndex++;
-//   }
-//   // entrinya tidak cukup
-//   if(emptyIndex == 64)
-//   {
-//     *sectorsFile = -2;
-//     return;
-//   }
-//   // cek sektor penuh/ngga
-//   for(i = 0; i < 0x100 ;i++)
-//   {
-//     if(buffer[i] == 0)
-//     {
-//       totalSector++;
-//     }
-//   }
-//   if(totalSector<*sectors)
-//   {
-//     *sectorsFile = -3;
-//     return;
-//   }
-  
-//   //cek sektor penuh 
-//   for(j = 0; j < 0x20 ;j++)
-//   {
-//     if(sectorsFile[j * 0x10] == '\0')
-//     {
-//       break;
-//     }
-//   }
-//   if(j == 0x20)
-//   {
-//     *sectorsFile = -3;
-//      return;
-//   }
-//   // cek indeks entri = 0xFF 
-//   if((unsigned char)files[parentIndex * 0x10 + 1] != 0xFF)
-//   {
-//     // parentIndex bukan root
-//     if((unsigned char)parentIndex != 0xFF)
-//     {
-//       *sectorsFile = -4;
-//       return;
-//     }
-//   }
-  
-//   clear(files + (emptyIndex*0x10), 16);
-//   files[emptyIndex * 0x10] = parentIndex;
-//   files[(emptyIndex * 0x10) + 1] = j;
-//   for(i=0;i<14;i++)
-//   {
-//     if(path[i] != 0x00)
-//     {
-//       files[(emptyIndex * 0x10)+ 2 + i] = path[i];
-//     }
-//     else
-//     {
-//       break;
-//     }
-//   }
-//   i = 0;
-//   while(i < *sectors)
-//   {
-//     for(sektorkosong = 0;sektorkosong < 0x100;sektorkosong++)
-//     {
-//       if(map[sektorkosong] == 0x00)
-//       {
-//         break;
-//       }
-//     }
-//     tulis_sektor = sektorkosong;
-//     map[tulis_sektor] = 0xFF;
-//     sectorsFile[j * 0x10 + i] = tulis_sektor;
-//     writeSector(buffer + (i * 512), tulis_sektor); 
-//     i++;
-//   }
-//   writeSector(map,256);
-//   writeSector(files,257);
-//   writeSector(files+0x200,258);
-//   writeSector(sectorsFile,259);
-// }
-
 void executeProgram(char *filename, int segment, int *success, char parentIndex) {
     // Buat buffer
     int isSuccess;
     char fileBuffer[512 * 16];
+    char fileNotFound[32];
+    int i=0;
+    char temp[10]; temp[0] = 't'; temp[1] = 'm';temp[2] ='p';temp[3] = '/';temp[4] = '~';temp[5] = 't';temp[6] = 'e';temp[7] = 'm';temp[8] = 'p';temp[9] = '\0';
+
+    clear(fileNotFound,32);
+    fileNotFound[0] = 'F' ; fileNotFound[1]= 'i'; fileNotFound[2] = 'l' ; fileNotFound[3]= 'e'; fileNotFound[4] = ' ' ; fileNotFound[5]= 'n'; fileNotFound[6]= 'o'; fileNotFound[7] = 't' ; fileNotFound[8]= ' '; fileNotFound[9] = 'f';fileNotFound[10] = 'o';fileNotFound[11] = 'u';fileNotFound[12] = 'n';fileNotFound[13] = 'd';fileNotFound[14] = '!'; fileNotFound[15] = '\r'; fileNotFound[16] = '\n';
     // Buka file dengan readFile
     readFile(&fileBuffer, filename, &isSuccess, parentIndex);
     // If success, salin dengan putInMemory
-    if (isSuccess) {
+    if (isSuccess==1) {
         // launchProgram
-        int i = 0;
         for (i = 0; i < 512*16; i++) {
             putInMemory(segment, i, fileBuffer[i]);
         }
         launchProgram(segment);
     } else {
-        interrupt(0x21, 0, "File not found!", 0,0);
+        deleteFile(getFilePathIdx(0xFF,temp));
+        interrupt(0x21, 0, fileNotFound, 0,0);
     }
 }

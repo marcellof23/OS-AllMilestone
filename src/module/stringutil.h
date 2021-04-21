@@ -1,9 +1,5 @@
-#ifndef UTILITIES_H
-#define UTILITIES_H
-
-int mod(int x, int y);
-
-int div(int x,int y);
+#ifndef STRINGUTIL_H
+#define STRINGUTIL_H
 
 int strcmp(char *string1,char *string2,int length);
 
@@ -18,5 +14,10 @@ int strsplit(char *input ,char param,char ptr[][64]);
 void itoa(int num, int basis, char * output);
 
 int isempty(char *buffer,int length);
+
+void strcpy(char *buffer,char *arg);
+
+void printString(char *string);
+void readString(char *string);
 
 #endif
