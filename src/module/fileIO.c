@@ -3,13 +3,6 @@
 #include "math.h"
 #include "stringutil.h"
 
-void readSector(char *buffer,int sector) {
-  interrupt(0x13, 0x201, buffer, div(sector,36)*0x100 + mod(sector,18) + 1, mod(div(sector,18),2)*0x100);
-}
-void writeSector(char *buffer,int sector) {
-  interrupt(0x13, 0x301, buffer, div(sector,36)*0x100 + mod(sector,18) + 1, mod(div(sector,18),2)*0x100);
-}
-
 void readFile(char *buffer, char *path, int *result, char parentIndex) //      readFile(BX, CX, DX, AH);
 {
   char files[1024];
@@ -19,9 +12,9 @@ void readFile(char *buffer, char *path, int *result, char parentIndex) //      r
   int j;
   int found=0;
 
-  readSector(files,0x101);
-  readSector(files+0x200,0x102);
-  readSector(sectorsFile,0x103);
+  interrupt(0x21,2,files,0x101,0);
+  interrupt(0x21,2,files+0x200,0x102,0);
+  interrupt(0x21,2,sectorsFile,0x103,0);
 
   while(i<1024 && !found){
     strslice(files,fileName,i+2,i+16);
@@ -29,7 +22,7 @@ void readFile(char *buffer, char *path, int *result, char parentIndex) //      r
       found = 1;
       for(j=0;j<16;j++){
         if(sectorsFile[files[i+1]*16+j] != 0x0){
-          readSector(buffer+j*512, sectorsFile[files[i+1]*16+j]);
+          interrupt(0x21,2,buffer+j*512,sectorsFile[files[i+1]*16+j]);
         } else{
           clear(buffer+j*512, 512);
         }
@@ -67,10 +60,10 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
 
   sectorsAvailable = 0;
 
-  readSector(map,0x100);
-  readSector(files,0x101);
-  readSector(files+0x200,0x102);
-  readSector(sectorsFile,0x103);
+  interrupt(0x21,2,map,0x100,0);
+  interrupt(0x21,2,files,0x101,0);
+  interrupt(0x21,2,files+0x200,0x102,0);
+  interrupt(0x21,2,sectorsFile,0x103,0);
 
   i=0;
   while(buffer[i]!=0x0){
@@ -103,11 +96,11 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
               map[j] = 0xFF;
               sectorsFile[sectorIndex*16+k] = j;
 
-              readSector(cache, j);
+              interrupt(0x21,2,cache,j,0);
               for(z=0;z<512;z++){
                   cache[z] = buffer[k*512+z];
               }
-              writeSector(cache, j);
+              interrupt(0x21,3,cache,j,0);
 
               k++;
             }
@@ -133,20 +126,20 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
     interrupt(0x21,0,"Not enough sectors\r\n",0,0);
   }
 
-  writeSector(map,256);
-  writeSector(files,257);
-  writeSector(files+0x200,258);
-  writeSector(sectorsFile,259);
+  interrupt(0x21,3,map,0x100,0);
+  interrupt(0x21,3,files,0x101,0);
+  interrupt(0x21,3,files+0x200,0x102,0);
+  interrupt(0x21,3,sectorsFile,0x103,0);
 }
 
 void cleanSector(int sector){
   char buffer[512];
   int i=0;
-  readSector(buffer, sector);
+  interrupt(0x21,2,buffer,sector,0);
 
   clear(buffer, 512);
 
-  writeSector(buffer, sector);
+  interrupt(0x21,3,buffer,sector,0);
 }
 
 void deleteFile(int idx){
