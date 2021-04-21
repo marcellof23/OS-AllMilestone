@@ -73,7 +73,13 @@ void rm(char *filename,unsigned char parentIndex){
         deleteFolder(idx);
     } 
     else{
-        deleteFile(idx);
+        if(files[idx*16+1]>=0x20){
+            clear(files+idx*16,16);
+            interrupt(0x21,3,files,0x101,0);
+            interrupt(0x21,3,files+512,0x102,0);
+        } else{
+            deleteFile(idx);
+        }
     }
 }
 
