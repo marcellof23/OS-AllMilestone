@@ -151,8 +151,8 @@ int main(){
                     strcpy(history+i*128, history+((i+1)*128));
                     shellState((unsigned char) parentIdx, historyCount, history);
                 }
-                clear(history+4*128, 128);
-                strcpy(history+4*128, input);
+                clear(history+3*128, 128);
+                strcpy(history+3*128, input);
                 shellState((unsigned char) parentIdx, historyCount, history);
             }
 
