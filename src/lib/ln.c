@@ -153,8 +153,6 @@ int ln(char *filepath, char *filelink,int soft,unsigned char parentIndex){
             if(isempty(files+i,16)){
                 files[i] = linkcount == 1 ? parentIndex : getPathIdx(parentIndex,res);
 
-                interrupt(0x21,0,res,0,0);
-                interrupt(0x21,0,"\r\n",0,0);
                 files[i+1] = files[idx*16+1];
                 for(j=2;j<16;j++){
                     files[i+j] = filename[j-2];
