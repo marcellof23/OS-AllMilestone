@@ -26,15 +26,8 @@ int main(){
     parentIdx = command[1][0];
 
     if(argc==3){
-        interrupt(0x21,0,"rm dipanggil\r\n",0,0);
         rm(command[3],parentIdx);
     } else if(argc==4){
-        interrupt(0x21,0,"rm recursive dipanggil\r\n",0,0);
-        interrupt(0x21,0, "parentIdx shell\r\n");
-
-        itoa(parentIdx,10,debugOutput);
-        interrupt(0x21,0,debugOutput,0,0);
-        interrupt(0x21,0,"\r\n",0,0);
         rmRecursive(command[4],parentIdx);
     }
     else{
@@ -63,10 +56,6 @@ void rm(char *filename,unsigned char parentIndex){
 
 
     idx = getFilePathIdx(parentIndex, filename);
-
-    itoa(idx,10,debugOutput);
-    interrupt(0x21,0,debugOutput,0,0);
-    interrupt(0x21,0,"\r\n",0,0);
 
     if(files[idx*16+1]==0xFF)
     {
