@@ -65,7 +65,7 @@ void writeFile(char *buffer, char *path, int *sectors, char parentIndex)
   interrupt(0x21,2,files+0x200,0x102,0);
   interrupt(0x21,2,sectorsFile,0x103,0);
 
-  if(files[parentIndex*16+1]!=0xFF || parentIndex == 0xFF){
+  if(files[parentIndex*16+1]!=0xFF && parentIndex != 0xFF){
     *sectors = -4;
     return;
   }
