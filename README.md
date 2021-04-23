@@ -13,28 +13,28 @@
 
 mv (memindahkan file/folder, jika argumen kedua bukan folder, maka source file akan langsung direname)
 <ul>
-  <li> mv <sourcefile> <targetfolder/targetfilepath> </li>
+  <li> mv [sourcefile] [targetfolder/targetfilepath] </li>
 </ul>
 cp (mengcopy file/folder, gunakan -r untuk mengcopy seluruh isi folder)
 <ul>
-  <li> cp <sourcefile> <targetfolder/nama file> </li>
-  <li> cp -r <sourcefolder> <targetfolder> </li>  
+  <li> cp [sourcefile] [targetfolder/nama file] </li>
+  <li> cp -r [sourcefolder] [targetfolder] </li>  
 </ul>
 mkdir (membuat directory)
 <ul>
-  <li> mkdir <foldername> </li>
+  <li> mkdir [foldername] </li>
 </ul>
 rm (menghapus file/folder)
 <ul>
-  <li> rm -r <foldername> atau rm <foldername/filename> </li>
+  <li> rm -r [foldername] atau rm [foldername/filename] </li>
   <li> -r digunakan untuk folder yang tidak kosong </li>
 </ul>
 cat (mencetak isi file)
 <ul>
-  <li> cat <filepath> </li>
+  <li> cat [filepath] </li>
 </ul>
 ln (membuat symbolic link)
 <ul>
-  <li> ln <sourcefilepath> <targetfilepath> atau ln -s <sourcefilepath> <targetfilepath> </li>
+  <li> ln [sourcefilepath] [targetfilepath] atau ln -s [sourcefilepath] [targetfilepath] </li>
 </ul>
     
