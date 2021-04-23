@@ -24,7 +24,6 @@ int main(){
     parentIdx = command[1][0];
 
     if(argc==3){
-        interrupt(0x21,0,"mkdir dipanggil\r\n",0,0);
         mkdir(command[3],parentIdx);
     } else{
         interrupt(0x21,0,"Usage : mkdir <filename>\r\n");

@@ -24,10 +24,8 @@ int main(){
     parentIdx = command[1][0];
 
     if(argc==5){
-        interrupt(0x21,0,"ln soft dipanggil\r\n",0,0);
         ln(command[4],command[5],1,parentIdx);
     } else if(argc==4){
-        interrupt(0x21,0,"ln hard dipanggil\r\n",0,0);
         ln(command[3],command[4],0,parentIdx);
     } else{
         interrupt(0x21,0,"Usage : ln <source> <dest>\r\n");
