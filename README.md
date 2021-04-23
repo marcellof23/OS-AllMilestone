@@ -10,16 +10,31 @@
   Pada kernel.asm, terdapat beberapa fungsi yang berguna dalam program OS kami, yang pertama adalah putInMemory yaitu fungsi dengan parameter segment, address, dan karakter yang berguna dalam  menulis sebuah karakter pada segment memori dengan offset tertentu. Fungsi kedua adalah interrupt yang telah dijelaskan sebelumnya, lalu terdapat fungsi makeInterrupt21 yang berguna dalam mempersiapkan tabel interrupt vector, dan yang akan memanggil kode kami saat interrupt 0x21 terpanggil. Yang terakhir adalah fungsi handlInterrupt21 yang juga akan terpanggil saat terjadi interrupt pada nomor 0x21, fungsinya adalah untuk mengetes parameter AX lalu dicocokan dengan berbagai cases, jika cocok maka akan dijalankan block statement yang ada didalamnya. Pada baris terakhir di kernel.asm terdapat _imageFile : incbin "paimon.bin", incbin disini merupakan salah satu syntax assembly yang memberikan pengarahan untuk meng-include sebuah file dalam file yang sedang di assemble. File yang diinclude ini akan dimasukkan dan digunakan nantinya tanpa di assemble. "paimon.bin" disini adalah nama file yang akan di-include dalam assembly dan file ini akan dipergunakan untuk mengambar boot logo dalam mode grafis.  
 
 ## 🔑Perintah yang tersedia
-  ● mv (memindahkan file/folder)
-    mv <sourcefile> <targetfolder/targetfilepath>
-  ● cp (mengcopy file/folder)
-    cp <>
-  ● mkdir (membuat directory)
-    mkdir <foldername>
-  ● rm (menghapus file/folder)
-    rm -r <foldername> atau rm <foldername/filename>
-    -r digunakan untuk folder yang tidak kosong
-  ● cat (mencetak isi file)
-    cat <filepath>
-  ● ln (membuat symbolic link)
-    ln <sourcefilepath> <targetfilepath> atau ln -s <sourcefilepath> <targetfilepath>
+
+mv (memindahkan file/folder, jika argumen kedua bukan folder, maka source file akan langsung direname)
+<ul>
+  <li> mv <sourcefile> <targetfolder/targetfilepath> </li>
+</ul>
+cp (mengcopy file/folder, gunakan -r untuk mengcopy seluruh isi folder)
+<ul>
+  <li> cp <sourcefile> <targetfolder/nama file> </li>
+  <li> cp -r <sourcefolder> <targetfolder> </li>  
+</ul>
+mkdir (membuat directory)
+<ul>
+  <li> mkdir <foldername> </li>
+</ul>
+rm (menghapus file/folder)
+<ul>
+  <li> rm -r <foldername> atau rm <foldername/filename> </li>
+  <li> -r digunakan untuk folder yang tidak kosong </li>
+</ul>
+cat (mencetak isi file)
+<ul>
+  <li> cat <filepath> </li>
+</ul>
+ln (membuat symbolic link)
+<ul>
+  <li> ln <sourcefilepath> <targetfilepath> atau ln -s <sourcefilepath> <targetfilepath> </li>
+</ul>
+    
