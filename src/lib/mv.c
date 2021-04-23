@@ -24,7 +24,6 @@ int main(){
     parentIdx = command[1][0];
 
     if(argc==4){
-        interrupt(0x21,0,"mv dipanggil\r\n",0,0);
         mv(command[3],command[4],parentIdx);
     } else{
         interrupt(0x21,0,"Usage : mv <source> <dest>\r\n");
@@ -38,26 +37,58 @@ int main(){
 void mv(char *filename, char *target, int parentIdx) {
     char files[1024];
     char currFile[14];
+    char pathList[64][64];
     char * outTest;
-    int i, newParentIdx, isFolder = 0;
+    int i = 0, j, newParentIdx = parentIdx, isFolder = 0, depth = 0, idx = 0;
 
     interrupt(0x21,2,files,0x101,0,0);
     interrupt(0x21,2,files+512,0x102,0,0);
 
-    // cari target
-    i = 0;
-    while(i < 1024) {
-        strslice(files, currFile, i+2, i+16);
-        if(strcmp(target, currFile, strlen(filename)) && strlen(target) == strlen(currFile)) {
-            if((unsigned char)files[i+1] == 0xFF) {
-                isFolder = 1;
-                newParentIdx = div(i,16);
+    while(*(target+i) != 0x0) {
+        if(*(target+i) == '/') {
+            while(idx < 14) {
+                pathList[depth][idx] = 0x0;
+                idx++;
             }
+            idx = 0;
+            depth++;
+        } else {
+            pathList[depth][idx] = *(target+i);
+            idx++;
         }
-        i += 16;
+        i++;
+    }
+    
+    while(idx < 14) {
+        pathList[depth][idx] = 0x0;
+        idx++;
+    }
+
+    for(j = 0; j <= depth; j++) {
+        newParentIdx = getPathIdx(newParentIdx, pathList[j]);
+        if(newParentIdx == -1) {
+            break;
+        }
+    }
+
+    if(newParentIdx != -1) {
+        isFolder = 1;
     }
 
     if(isFolder) {
+        // cek ada file dengan nama yang sama di folder yang dituju
+        i = 0;
+        while(i < 1024) {
+            strslice(files, currFile, i+2, i+16);
+            if(strcmp(filename, currFile, strlen(filename)) && strlen(filename) == strlen(currFile)) {
+                if(files[i] == newParentIdx) {
+                    interrupt(0x21, 0, "File with same name existed!!\r\n", 0, 0);
+                    return;
+                }
+            }
+            i += 16;
+        }
+
         // ngubah file directory
         i = 0;
         while(i < 1024) {
