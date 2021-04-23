@@ -12,7 +12,7 @@ int main(){
     char execStatus[16];
     char command[16][64];
     char argc,parentIdx;
-    int commandCount,i;
+    int commandCount,i,idxD,idxS;
 
     char debugOutput[128];
 
@@ -26,10 +26,18 @@ int main(){
     parentIdx = command[1][0];
 
     if(argc==4){
-        interrupt(0x21,0,"cp dipanggil\r\n",0,0);
-        cpFiles(buffer,parentIdx, command[3], command[4]);
+        idxS = getFilePathIdx(parentIdx, command[3]);
+        idxD = getFilePathIdx(parentIdx, command[4]);
+        if(idxS == idxD && strcmp(command[3], command[4],14))
+        {
+            interrupt(0x21,0,"You copy two file with the same name\r\n",0,0);
+        }
+        else
+        {
+            cpFiles(buffer,parentIdx, command[3], command[4]);
+        } 
+         
     } else if(argc==5){
-        interrupt(0x21,0,"cp recursive dipanggil\r\n",0,0);
         cp(buffer, parentIdx, parentIdx, command[4], command[5]);
     }
     else{
@@ -49,7 +57,7 @@ void cpFiles(char * filenames, char parentIdx, char * src, char * dest)  {
     idx = getFilePathIdx(parentIdx, dest);
     if(idx == -2)
     {
-        interrupt(0x21,(parentIdx << 8) + 0x5,filenames,src,&res);
+        interrupt(0x21,(parentIdx << 8) + 0x5,filenames,dest,&res);
     }
     else 
     {
