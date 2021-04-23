@@ -30,7 +30,7 @@ int main(){
         idxD = getFilePathIdx(parentIdx, command[4]);
         if(idxS == idxD && strcmp(command[3], command[4],14))
         {
-            interrupt(0x21,0,"You copy two file with the same name\r\n",0,0);
+            interrupt(0x21,0,"You copy two file with the same\r\n",0,0);
         }
         else
         {
